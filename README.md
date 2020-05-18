@@ -4,8 +4,8 @@
 Under development, not released yet
 
 # Reference
-[markdown-viewer](https://github.com/simov/markdown-viewer)
-[nbpreview](https://github.com/jsvine/nbpreview)
+* [markdown-viewer](https://github.com/simov/markdown-viewer)
+* [nbpreview](https://github.com/jsvine/nbpreview)
 
 # Features
 

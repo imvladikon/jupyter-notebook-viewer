@@ -149,7 +149,7 @@ m.mount(document.querySelector('body'), {
         oncreate: oncreate.ripple,
         onclick: events.raw
         },
-        (state.raw ? 'Html' : 'Markdown')
+        (state.raw ? 'Html' : 'ipynb')
       ),
       // defaults
       m('button.mdc-button mdc-button--raised m-button', {

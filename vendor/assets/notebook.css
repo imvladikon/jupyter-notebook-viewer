@@ -1,5 +1,5 @@
 .nb-notebook {
-    line-height: 1.5;    
+    line-height: 1.5;
 }
 
 .nb-stdout, .nb-stderr {
@@ -27,14 +27,14 @@
 
 .nb-output th, .nb-output td {
     border: 1px solid #000;
-    padding: 0.25em;    
+    padding: 0.25em;
     text-align: left;
     vertical-align: middle;
     border-collapse: collapse;
 }
 
 .nb-cell {
-    position: relative;    
+    position: relative;
 }
 
 .nb-raw-cell {
@@ -46,18 +46,18 @@
 }
 
 .nb-output {
-    min-height: 1em;    
+    min-height: 1em;
     width: 100%;
     overflow-x: scroll;
     border-right: 1px dotted #CCC;
 }
 
 .nb-output img {
-    max-width: 100%;    
+    max-width: 100%;
 }
 
 .nb-output:before, .nb-input:before {
-    position: absolute;    
+    position: absolute;
     font-family: monospace;
     color: #999;
     left: -7.5em;
@@ -72,8 +72,7 @@
     content: "Out [" attr(data-prompt-number) "]:";
 }
 
-// Fix pandas dataframe formatting
 div[style="max-height:1000px;max-width:1500px;overflow:auto;"] {
-    max-height: none !important;    
+    max-height: none !important;
 }
 

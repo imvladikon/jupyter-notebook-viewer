@@ -59,7 +59,7 @@ function mount() {
         compiler: state.compiler,
         markdown: state.markdown
       }, (res) => {
-        state.html = nb.parse(JSON.parse(state.markdown)).render().innerHTML//state.content.emoji ? emojinator(res.html) : res.html
+        state.html = nb.parse(JSON.parse(state.markdown)).render().outerHTML//state.content.emoji ? emojinator(res.html) : res.html #state.markdown
         m.redraw()
       })
     },

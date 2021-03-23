@@ -181,7 +181,7 @@ function anchors() {
 
 var toc = (
   link = (header) => '<a href="#' + header.id + '">' + header.title + '</a>') =>
-  Array.from($('#_html').childNodes)
+  Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
     .filter((node) => /h[1-6]/i.test(node.tagName))
     .map((node) => ({
       id: node.getAttribute('id'),

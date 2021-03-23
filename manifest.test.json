@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name"            : "Jupyter Notebook Viewer",
-  "version"         : "0.2",
+  "version"         : "0.3",
   "description"     : "Jupyter Notebook Viewer",
 
   "browser_action": {

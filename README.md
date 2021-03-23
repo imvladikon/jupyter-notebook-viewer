@@ -1,28 +1,35 @@
 
-# Jupyter Notebook Viewer / Browser Extension
+## Jupyter Notebook Viewer (Chrome Extension)
 
-Under development, not released yet
+Jupyter file (*.ipynb) local viewer, [chrome extension](https://chrome.google.com/webstore/detail/jupyter-notebook-viewer/ocabfdicbcamoonfhalkdojedklfcjmf?hl=en)
 
-# Reference
+## References
+
+Kudos to the authors of the projects (the extension based on their works):
+
 * [markdown-viewer](https://github.com/simov/markdown-viewer)
 * [nbpreview](https://github.com/jsvine/nbpreview)
 * [jupyter-themes](https://github.com/dunovank/jupyter-themes)
 
-# Features
+## Features
 
+* Renders local and remote URLs
+* Granular access to remote origins
+* Full control over the compiler options
+* Themes
+* Auto reload on file change
+* Syntax highlighted code blocks
+* Table of Contents (TOC)
+* MathJax support
 
+[![demonstration](http://img.youtube.com/vi/x0nYGZDbEoY/0.jpg)](https://www.youtube.com/watch?v=x0nYGZDbEoY "demonstration")
 
-# After Install
+## How To Install
+[video instruction](https://www.youtube.com/watch?v=izGeP2wyOIk)
 
-## Local Files
+## Manual Install
 
-
-## Remote Files
-
-
-# Manual Install
-
-## Chrome
+Chrome
 
 1. Clone this repository
 2. Navigate to `chrome://extensions`

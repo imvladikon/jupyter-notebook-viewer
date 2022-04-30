@@ -8,6 +8,7 @@ var state = {
   compiler,
   html: '',
   markdown: '',
+  nbjson: '',
   toc: '',
   interval: null,
   ms: 1000,
@@ -103,17 +104,16 @@ var oncreate = {
 
 function mount () {
   $('pre').style.display = 'none'
-  var md = $('pre').innerText
+  var nbjson = JSON.parse($('pre').innerText)
 
   m.mount($('body'), {
     oninit: () => {
-      state.markdown = md
       chrome.runtime.sendMessage({
-        message: 'markdown',
+        message: 'nbjson',
         compiler: state.compiler,
-        markdown: state.markdown
+        nbjson: nbjson
       }, (res) => {
-        state.html = nb.parse(JSON.parse(state.markdown)).render().outerHTML//state.content.emoji ? emojinator(res.html) : res.html #state.markdown
+        state.html = nb.parse(res.nbjson).render().innerHTML
         m.redraw()
       })
     },

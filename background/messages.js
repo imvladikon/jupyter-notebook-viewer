@@ -20,6 +20,12 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
 
       sendResponse({message: 'html', html})
     }
+    else if (req.message === 'nbjson') {
+
+        var nbjson = req.nbjson
+        sendResponse({message: 'html', nbjson: nbjson})
+
+    }
     else if (req.message === 'autoreload') {
       xhr.get(req.location, (err, body) => {
         sendResponse({err, body})

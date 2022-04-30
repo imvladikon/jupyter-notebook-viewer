@@ -3,6 +3,7 @@ var $ = document.querySelector.bind(document)
 var state = {
   theme,
   raw,
+  themes,
   content,
   compiler,
   html: '',
@@ -15,13 +16,20 @@ var state = {
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.message === 'reload') {
     location.reload(true)
-  } else if (req.message === 'theme') {
+  }
+  else if (req.message === 'theme') {
     state.theme = req.theme
     m.redraw()
-  } else if (req.message === 'raw') {
+  }
+  else if (req.message === 'themes') {
+    state.themes = req.themes
+    m.redraw()
+  }
+  else if (req.message === 'raw') {
     state.raw = req.raw
     m.redraw()
-  } else if (req.message === 'autoreload') {
+  }
+  else if (req.message === 'autoreload') {
     clearInterval(state.interval)
   }
 })
@@ -47,7 +55,7 @@ var oncreate = {
   }
 }
 
-function mount() {
+function mount () {
   $('pre').style.display = 'none'
   var md = $('pre').innerText
 
@@ -69,18 +77,19 @@ function mount() {
       if (state.raw) {
         dom.push(m('pre#_markdown', {oncreate: oncreate.markdown}, state.markdown))
         $('body').classList.remove('_toc-left', '_toc-right')
-      } else {
+      }
+      else {
         if (state.theme) {
           dom.push(m('link#_theme', {
             rel: 'stylesheet', type: 'text/css',
-            href: state.theme.url,
+            href: chrome.runtime.getURL(`/themes/${state.theme}.css`),
           }))
         }
         if (state.html) {
-          dom.push(m('#_html', {
-              oncreate: oncreate.html,
-              class: /github(-dark)?/.test(state.theme.name) ? 'markdown-body' : 'markdown-theme'
-            },
+          dom.push(m('#_html', {oncreate: oncreate.html,
+            class: (/github(-dark)?/.test(state.theme) ? 'markdown-body' : 'markdown-theme') +
+            (state.themes.wide ? ' wide-theme' : '')
+          },
             m.trust(state.html)
           ))
           if (state.content.toc && state.toc) {
@@ -92,8 +101,23 @@ function mount() {
           if (state.content.mathjax) {
             dom.push(m('script', {type: 'text/x-mathjax-config'}, mathjax))
             dom.push(m('script', {
-              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js'
+              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js'
             }))
+          }
+          if (state.content.mermaid) {
+            dom.push(m('script', {
+              src: 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.8.4/mermaid.min.js'
+            }))
+            dom.push(m('script', {type: 'text/javascript'}, `
+              ;(() => {
+                var timeout = setInterval(() => {
+                  if (!!(window.mermaid && mermaid.init)) {
+                    clearInterval(timeout)
+                    mermaid.init({}, 'code.language-mmd, code.language-mermaid')
+                  }
+                }, 50)
+              })()
+            `))
           }
         }
       }
@@ -104,39 +128,62 @@ function mount() {
 }
 
 var scroll = (() => {
-  function race(done) {
-    var images = Array.from(document.querySelectorAll('img'))
-    if (!images.length) {
-      done()
-    }
-    var loaded = 0
-    images.forEach((img) => {
-      img.addEventListener('load', () => {
-        if (++loaded === images.length) {
-          done()
-        }
-      }, {once: true})
-    })
-    setTimeout(done, 100)
+  function race (done) {
+    Promise.race([
+      Promise.all([
+        new Promise((resolve) => {
+          var diagrams = Array.from(document.querySelectorAll('code.language-mmd, code.language-mermaid'))
+          if (!state.content.mermaid || !diagrams.length) {
+            resolve()
+          }
+          else {
+            var timeout = setInterval(() => {
+              var svg = Array.from(document.querySelectorAll('code.language-mmd svg, code.language-mermaid svg'))
+              if (diagrams.length === svg.length) {
+                clearInterval(timeout)
+                resolve()
+              }
+            }, 50)
+          }
+        }),
+        new Promise((resolve) => {
+          var images = Array.from(document.querySelectorAll('img'))
+          if (!images.length) {
+            resolve()
+          }
+          else {
+            var loaded = 0
+            images.forEach((img) => {
+              img.addEventListener('load', () => {
+                if (++loaded === images.length) {
+                  resolve()
+                }
+              }, {once: true})
+            })
+          }
+        }),
+      ]),
+      new Promise((resolve) => setTimeout(resolve, 500))
+    ])
+    .then(done)
   }
-
-  function debounce(container, done) {
-    var listener = /body/i.test(container.nodeName) ? window : container
+  function debounce (container, done) {
+    var listener = /html/i.test(container.nodeName) ? window : container
     var timeout = null
     listener.addEventListener('scroll', () => {
       clearTimeout(timeout)
       timeout = setTimeout(done, 100)
     })
   }
-
-  function listen(container, prefix) {
+  function listen (container, prefix) {
     var key = prefix + location.origin + location.pathname
     try {
       container.scrollTop = parseInt(localStorage.getItem(key))
       debounce(container, () => {
         localStorage.setItem(key, container.scrollTop)
       })
-    } catch (err) {
+    }
+    catch (err) {
       chrome.storage.local.get(key, (res) => {
         container.scrollTop = parseInt(res[key])
       })
@@ -145,7 +192,6 @@ var scroll = (() => {
       })
     }
   }
-
   return {
     body: () => {
       var loaded
@@ -153,9 +199,10 @@ var scroll = (() => {
         if (!loaded) {
           loaded = true
           if (state.content.scroll) {
-            listen($('body'), 'md-')
-          } else if (location.hash && $(location.hash)) {
-            $('body').scrollTop = $(location.hash).offsetTop
+            listen($('html'), 'md-')
+          }
+          else if (location.hash && $(location.hash)) {
+            $('html').scrollTop = $(location.hash).offsetTop
           }
         }
       })
@@ -166,17 +213,17 @@ var scroll = (() => {
   }
 })()
 
-function anchors() {
+function anchors () {
   Array.from($('#_html').childNodes)
-    .filter((node) => /h[1-6]/i.test(node.tagName))
-    .forEach((node) => {
-      var a = document.createElement('a')
-      a.className = 'anchor'
-      a.name = node.id
-      a.href = '#' + node.id
-      a.innerHTML = '<span class="octicon octicon-link"></span>'
-      node.prepend(a)
-    })
+  .filter((node) => /h[1-6]/i.test(node.tagName))
+  .forEach((node) => {
+    var a = document.createElement('a')
+    a.className = 'anchor'
+    a.name = node.id
+    a.href = '#' + node.id
+    a.innerHTML = '<span class="octicon octicon-link"></span>'
+    node.prepend(a)
+  })
 }
 
 var toc = (
@@ -197,7 +244,8 @@ var toc = (
 
 if (document.readyState === 'complete') {
   mount()
-} else {
+}
+else {
   var timeout = setInterval(() => {
     if (document.readyState === 'complete') {
       clearInterval(timeout)
@@ -213,7 +261,8 @@ if (state.content.autoreload) {
     var response = (body) => {
       if (!initial) {
         initial = body
-      } else if (initial !== body) {
+      }
+      else if (initial !== body) {
         location.reload(true)
       }
     }
@@ -234,15 +283,18 @@ if (state.content.autoreload) {
           if (res.err) {
             console.error(res.err)
             clearInterval(state.interval)
-          } else {
+          }
+          else {
             response(res.body)
           }
         })
-      } else {
+      }
+      else {
         xhr.open('GET', location.href + '?preventCache=' + Date.now(), true)
         try {
           xhr.send()
-        } catch (err) {
+        }
+        catch (err) {
           console.error(err)
           clearInterval(state.interval)
         }
@@ -284,13 +336,7 @@ var mathjax = `
         ['$$', '$$'],
         ['\\\\[', '\\\\]'],
       ],
-      processEscapes: true,
-      processEnvironments: true,
-    },
-    displayAlign: 'center',
-    "HTML-CSS": {
-    styles: {'.MathJax_Display': {"margin": 0}},
-    linebreaks: { automatic: true }
+      processEscapes: true
     },
     showMathMenu: false,
     showProcessingMessages: false,

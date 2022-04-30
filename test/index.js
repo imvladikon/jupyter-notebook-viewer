@@ -5,7 +5,7 @@ var Server = require('./utils/server')
 
 var options = {
   headless: false,
-  // slowMo: 300,
+  slowMo: 25,
   args: [
     `--disable-extensions-except=${path.resolve(__dirname, '../')}`,
     `--load-extension=${path.resolve(__dirname, '../')}`,
@@ -17,7 +17,6 @@ var tests = [
   'defaults-options',
 
   'popup-options',
-  // 'custom-themes',
 
   'origin-add',
   'origin-match',
@@ -26,7 +25,7 @@ var tests = [
 ]
 
 
-describe('jupyter-notebook-viewer', () => {
+describe('markdown-viewer', () => {
   var browser, server
 
   it('test suite', async () => {

@@ -13,6 +13,52 @@ var state = {
   ms: 1000,
 }
 
+
+let mathjaxSettings = `
+  // TeX-AMS_HTML
+  MathJax.Hub.Config({
+    jax: [
+      'input/TeX',
+      'output/HTML-CSS',
+      'output/PreviewHTML',
+    ],
+    extensions: [
+      'tex2jax.js',
+      'AssistiveMML.js',
+      'a11y/accessibility-menu.js',
+    ],
+    TeX: {
+      extensions: [
+        'AMSmath.js',
+        'AMSsymbols.js',
+        'noErrors.js',
+        'noUndefined.js',
+      ]
+    },
+    tex2jax: {
+      inlineMath: [
+        ['$', '$'],
+        ['\\\\(', '\\\\)'],
+      ],
+      displayMath: [
+        ['$$', '$$'],
+        ['\\\\[', '\\\\]'],
+      ],
+      processEscapes: true
+    },
+    showMathMenu: false,
+    showProcessingMessages: false,
+    messageStyle: 'none',
+    skipStartupTypeset: true, // disable initial rendering
+    positionToHash: false
+  })
+  // set specific container to render, can be delayed too
+  MathJax.Hub.Queue(
+    ['Typeset', MathJax.Hub, '_html']
+  )
+`;
+
+
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.message === 'reload') {
     location.reload(true)
@@ -99,7 +145,7 @@ function mount () {
             $('body').classList.add('_toc-left')
           }
           if (state.content.mathjax) {
-            dom.push(m('script', {type: 'text/x-mathjax-config'}, mathjax))
+            dom.push(m('script', {type: 'text/x-mathjax-config'}, mathjaxSettings))
             dom.push(m('script', {
               src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js'
             }))
@@ -305,47 +351,3 @@ if (state.content.autoreload) {
     state.interval = setInterval(get, state.ms)
   })()
 }
-
-var mathjax = `
-  // TeX-AMS_HTML
-  MathJax.Hub.Config({
-    jax: [
-      'input/TeX',
-      'output/HTML-CSS',
-      'output/PreviewHTML',
-    ],
-    extensions: [
-      'tex2jax.js',
-      'AssistiveMML.js',
-      'a11y/accessibility-menu.js',
-    ],
-    TeX: {
-      extensions: [
-        'AMSmath.js',
-        'AMSsymbols.js',
-        'noErrors.js',
-        'noUndefined.js',
-      ]
-    },
-    tex2jax: {
-      inlineMath: [
-        ['$', '$'],
-        ['\\\\(', '\\\\)'],
-      ],
-      displayMath: [
-        ['$$', '$$'],
-        ['\\\\[', '\\\\]'],
-      ],
-      processEscapes: true
-    },
-    showMathMenu: false,
-    showProcessingMessages: false,
-    messageStyle: 'none',
-    skipStartupTypeset: true, // disable initial rendering
-    positionToHash: false
-  })
-  // set specific container to render, can be delayed too
-  MathJax.Hub.Queue(
-    ['Typeset', MathJax.Hub, '_html']
-  )
-`

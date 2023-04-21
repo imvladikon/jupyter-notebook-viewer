@@ -68,7 +68,7 @@
     "128": "/icons/icon128.png"
   },
 
-  "homepage_url": "https://chrome.google.com/webstore/detail/",
+  "homepage_url": "https://chrome.google.com/webstore/detail/jupyter-notebook-viewer/ocabfdicbcamoonfhalkdojedklfcjmf",
 
   "permissions": [
     "storage",

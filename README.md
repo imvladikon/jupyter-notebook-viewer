@@ -1,15 +1,7 @@
 
 ## Jupyter Notebook Viewer (Chrome Extension)
 
-Jupyter file (*.ipynb) local viewer, [chrome extension](https://chrome.google.com/webstore/detail/jupyter-notebook-viewer/ocabfdicbcamoonfhalkdojedklfcjmf?hl=en)
-
-## References
-
-Kudos to the authors of the projects (the extension based on their works):
-
-* [markdown-viewer](https://github.com/simov/markdown-viewer)
-* [nbpreview](https://github.com/jsvine/nbpreview)
-* [jupyter-themes](https://github.com/dunovank/jupyter-themes)
+Jupyter files (*.ipynb) local viewer, [chrome extension](https://chrome.google.com/webstore/detail/jupyter-notebook-viewer/ocabfdicbcamoonfhalkdojedklfcjmf?hl=en)
 
 ## Features
 
@@ -27,7 +19,7 @@ Kudos to the authors of the projects (the extension based on their works):
 ## How To Install
 [video instruction](https://www.youtube.com/watch?v=izGeP2wyOIk)
 
-## Manual Install
+## Manual Installation
 
 Chrome
 
@@ -39,3 +31,10 @@ Chrome
 
 > Note that in this case you won't receive any future updates automatically.
 
+## References
+
+Kudos to the authors of the projects (the extension based on their works):
+
+* [markdown-viewer](https://github.com/simov/markdown-viewer)
+* [nbpreview](https://github.com/jsvine/nbpreview)
+* [jupyter-themes](https://github.com/dunovank/jupyter-themes)

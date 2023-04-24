@@ -1,4 +1,3 @@
-
 var md = {compilers: {}}
 
 md.compilers.marked = (() => {

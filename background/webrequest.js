@@ -1,4 +1,3 @@
-
 md.webrequest = ({storage: {state}, detect}) => {
 
   var permissions = ['webRequest', 'webRequestBlocking']
@@ -97,8 +96,7 @@ md.webrequest = ({storage: {state}, detect}) => {
         chrome.webRequest = null
         done()
       })
-    }
-    else {
+    } else {
       done()
     }
   }

@@ -1,4 +1,3 @@
-
 // chrome.storage.sync.clear()
 // chrome.permissions.getAll((p) => chrome.permissions.remove({origins: p.origins}))
 
@@ -8,7 +7,7 @@ md.storage = ({compilers}) => {
 
   var state = {}
 
-  function set (options) {
+  function set(options) {
     chrome.storage.sync.set(options)
     Object.assign(state, options)
   }

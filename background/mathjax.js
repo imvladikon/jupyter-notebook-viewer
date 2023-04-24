@@ -1,4 +1,3 @@
-
 md.mathjax = () => {
 
   var delimiters = new RegExp([
@@ -8,26 +7,26 @@ md.mathjax = () => {
     /\\begin\{.*?\}[^`]*?\\end\{.*?\}/,
     /\$[^`\n]*?\$/,
   ]
-  .map((regex) => `(?:${regex.source})`).join('|'), 'gi')
+    .map((regex) => `(?:${regex.source})`).join('|'), 'gi')
 
   var escape = (math) =>
     math.replace(/[<>&]/gi, (symbol) =>
       symbol === '>' ? '&gt;' :
-      symbol === '<' ? '&lt;' :
-      symbol === '&' ? '&amp;': null
+        symbol === '<' ? '&lt;' :
+          symbol === '&' ? '&amp;' : null
     )
 
   var ctor = (map = {}) => ({
     tokenize: (markdown) =>
       markdown.replace(delimiters, (str, offset) => (
         map[offset] = str,
-        `?${offset}?`
+          `?${offset}?`
       ))
     ,
     detokenize: (html) =>
       Object.keys(map)
         .reduce((html, offset) =>
-          html = html.replace(`?${offset}?`, () => escape(map[offset])),
+            html = html.replace(`?${offset}?`, () => escape(map[offset])),
           html
         )
   })

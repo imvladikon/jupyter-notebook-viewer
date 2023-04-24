@@ -1,4 +1,3 @@
-
 md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webrequest}) => {
 
   return (req, sender, sendResponse) => {
@@ -19,14 +18,12 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
       }
 
       sendResponse({message: 'html', html})
-    }
-    else if (req.message === 'nbjson') {
+    } else if (req.message === 'nbjson') {
 
-        var nbjson = req.nbjson
-        sendResponse({message: 'html', nbjson: nbjson})
+      var nbjson = req.nbjson
+      sendResponse({message: 'html', nbjson: nbjson})
 
-    }
-    else if (req.message === 'autoreload') {
+    } else if (req.message === 'autoreload') {
       xhr.get(req.location, (err, body) => {
         sendResponse({err, body})
       })
@@ -40,53 +37,44 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
         compilers: Object.keys(compilers),
         themes: state.themes,
       }))
-    }
-    else if (req.message === 'popup.theme') {
+    } else if (req.message === 'popup.theme') {
       set({theme: req.theme})
       notifyContent({message: 'theme', theme: req.theme})
       sendResponse()
-    }
-    else if (req.message === 'popup.raw') {
+    } else if (req.message === 'popup.raw') {
       set({raw: req.raw})
       notifyContent({message: 'raw', raw: req.raw})
       sendResponse()
-    }
-    else if (req.message === 'popup.themes') {
+    } else if (req.message === 'popup.themes') {
       set({themes: req.themes})
       notifyContent({message: 'themes', themes: req.themes})
       sendResponse()
-    }
-    else if (req.message === 'popup.defaults') {
+    } else if (req.message === 'popup.defaults') {
       var options = Object.assign({}, defaults)
       options.origins = state.origins
       set(options)
       notifyContent({message: 'reload'})
       sendResponse()
-    }
-    else if (req.message === 'popup.compiler.name') {
+    } else if (req.message === 'popup.compiler.name') {
       set({compiler: req.compiler})
       notifyContent({message: 'reload'})
       sendResponse()
-    }
-    else if (req.message === 'popup.compiler.options') {
+    } else if (req.message === 'popup.compiler.options') {
       set({[req.compiler]: req.options})
       notifyContent({message: 'reload'})
       sendResponse()
-    }
-    else if (req.message === 'popup.content') {
+    } else if (req.message === 'popup.content') {
       set({content: req.content})
       notifyContent({message: 'reload'})
       webrequest()
       sendResponse()
-    }
-    else if (req.message === 'popup.advanced') {
+    } else if (req.message === 'popup.advanced') {
       // ff: opens up about:addons with openOptionsPage
       if (/Firefox/.test(navigator.userAgent)) {
         chrome.management.getSelf((extension) => {
           chrome.tabs.create({url: extension.optionsUrl})
         })
-      }
-      else {
+      } else {
         chrome.runtime.openOptionsPage()
       }
       sendResponse()
@@ -99,8 +87,7 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
         header: state.header,
         match: state.match,
       })
-    }
-    else if (req.message === 'options.header') {
+    } else if (req.message === 'options.header') {
       set({header: req.header})
       sendResponse()
     }
@@ -114,14 +101,12 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
       }
       set({origins: state.origins})
       sendResponse()
-    }
-    else if (req.message === 'origin.remove') {
+    } else if (req.message === 'origin.remove') {
       delete state.origins[req.origin]
       set({origins: state.origins})
       webrequest()
       sendResponse()
-    }
-    else if (req.message === 'origin.update') {
+    } else if (req.message === 'origin.update') {
       state.origins[req.origin] = req.options
       set({origins: state.origins})
       webrequest()
@@ -131,7 +116,7 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
     return true
   }
 
-  function notifyContent (req, res) {
+  function notifyContent(req, res) {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, req, res)
     })

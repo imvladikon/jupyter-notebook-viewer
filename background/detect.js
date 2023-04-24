@@ -1,4 +1,3 @@
-
 md.detect = ({storage: {state}, inject}) => {
 
   var onwakeup = true
@@ -22,8 +21,7 @@ md.detect = ({storage: {state}, inject}) => {
 
         try {
           var win = JSON.parse(res)
-        }
-        catch (err) {
+        } catch (err) {
           // JSON parse error
           return
         }
@@ -37,8 +35,7 @@ md.detect = ({storage: {state}, inject}) => {
           if (onwakeup && chrome.webRequest) {
             onwakeup = false
             chrome.tabs.reload(id)
-          }
-          else {
+          } else {
             inject(id)
           }
         }

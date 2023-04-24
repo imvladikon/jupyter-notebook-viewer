@@ -1,4 +1,3 @@
-
 md.xhr = () => {
   var done
 
@@ -14,8 +13,7 @@ md.xhr = () => {
     xhr.open('GET', url + '?preventCache=' + Date.now(), true)
     try {
       xhr.send()
-    }
-    catch (err) {
+    } catch (err) {
       console.error(err)
       done(err)
     }

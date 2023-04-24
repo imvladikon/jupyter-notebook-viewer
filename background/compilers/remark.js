@@ -1,4 +1,3 @@
-
 md.compilers.remark = (() => {
   var defaults = {
     breaks: false,

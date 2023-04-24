@@ -1,4 +1,3 @@
-
 ;(() => {
   var storage = md.storage(md)
   var inject = md.inject({storage})
@@ -10,7 +9,7 @@
   var compilers = Object.keys(md.compilers)
     .reduce((all, compiler) => (
       all[compiler] = md.compilers[compiler]({storage}),
-      all
+        all
     ), {})
 
   var messages = md.messages({storage, compilers, mathjax, xhr, webrequest})

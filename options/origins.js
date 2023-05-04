@@ -74,7 +74,7 @@ var Origins = () => {
       },
 
       host: (e) => {
-        state.host = e.target.value.replace(/.*:\/\/([^/]+).*/i, '$1')
+        state.host = e.target.value.replace(/.*:\/\/([^:/]+).*/i, '$1')
       },
 
       add: (all) => () => {

@@ -49,9 +49,11 @@
     "test": "mocha --timeout 100000000 --slow 400",
     "debug": "mocha --inspect-brk --timeout 100000000",
     "build:mdc": "./build/mdc/mdc.sh",
+    "build:mathjax": "./build/mathjax/build.sh",
     "build:prism": "node build/prism/",
     "build:remark": "./build/remark/build.sh",
-    "build:themes": "./build/themes/themes.sh"
+    "build:themes": "./build/themes/themes.sh",
+    "build": "./build/mathjax/build.sh && ./build/mdc/mdc.sh && ./build/prism/build.sh && ./build/remark/build.sh && ./build/themes/themes.sh"
   },
   "engines": {
     "node": ">=18.0.0"

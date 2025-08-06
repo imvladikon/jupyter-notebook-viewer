@@ -30,7 +30,9 @@
       "resources": [
         "/themes/*.css",
         "/vendor/prism.min.css",
-        "/vendor/katex.min.css"
+        "/vendor/katex.min.css",
+        "/vendor/mathjax/fonts/*.woff",
+        "/vendor/mathjax/extensions/*.js"
       ]
     }
   ],

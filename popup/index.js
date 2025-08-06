@@ -112,6 +112,16 @@ var init = (res) => {
   state._themes = resources
     .filter((file) => file.indexOf('/themes/') === 0)
     .map((file) => file.replace(/\/themes\/(.*)\.css/, '$1'))
+  
+  // Fallback if no themes found from web_accessible_resources
+  if (state._themes.length === 0) {
+    state._themes = [
+      'github', 'github-dark', 'markdown', 'markdown-alt', 
+      'solarized-light', 'solarized-dark', 'ghostwriter', 
+      'foghorn', 'godspeed', 'radar', 'torpedo', 'vostok',
+      'new-modern', 'screen', 'markedapp-byword'
+    ]
+  }
 
   state.raw = res.raw
   state.tab = localStorage.getItem('tab') || 'theme'

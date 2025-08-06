@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name"            : "Jupyter Notebook Viewer",
-  "version"         : "0.7",
+  "version"         : "0.8.0",
   "description"     : "Jupyter Notebook Viewer",
 
   "action": {
@@ -45,7 +45,8 @@
 
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
 
   "host_permissions": [

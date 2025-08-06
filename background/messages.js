@@ -1,9 +1,23 @@
-md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webrequest}) => {
+md.messages = ({storage, compilers, mathjax, xhr, webrequest}) => {
+  // Extract storage properties
+  const {defaults, state, set} = storage || {}
 
   return (req, sender, sendResponse) => {
 
     // content
-    if (req.message === 'markdown') {
+    if (req.message === 'ping') {
+      sendResponse({message: 'pong', status: 'ok', extension: 'Jupyter Notebook Viewer'})
+    } else if (req.message === 'get-config') {
+      sendResponse({
+        config: {
+          theme: state.theme,
+          raw: state.raw,
+          themes: state.themes,
+          content: state.content,
+          compiler: state.compiler
+        }
+      })
+    } else if (req.message === 'markdown') {
       var markdown = req.markdown
 
       if (state.content.mathjax) {
@@ -19,6 +33,10 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
 
       sendResponse({message: 'html', html})
     } else if (req.message === 'nbjson') {
+      console.log('[Messages] Processing nbjson request');
+      console.log('[Messages] Current compiler:', state.compiler);
+      console.log('[Messages] Available compilers:', compilers ? Object.keys(compilers) : 'none');
+      console.log('[Messages] Notebook cells:', req.nbjson && req.nbjson.cells ? req.nbjson.cells.length : 0);
 
       var nbjson = req.nbjson
       sendResponse({message: 'html', nbjson: nbjson})

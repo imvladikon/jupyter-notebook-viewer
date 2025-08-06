@@ -1,11 +1,62 @@
+console.log('[Content Script] Starting Jupyter Notebook Viewer content script');
+
 var $ = document.querySelector.bind(document)
 
+// Check if window.args exists (injected by extension)
+console.log('[Content Script] Checking for window.args:', !!window.args, 'window.notebookConfig:', !!window.notebookConfig);
+if (!window.args && !window.notebookConfig) {
+  console.error('Jupyter Notebook Viewer: Extension not properly initialized')
+  
+  // Try to get defaults or exit gracefully
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    console.log('[Content Script] Attempting to get configuration from extension...');
+    chrome.runtime.sendMessage({message: 'get-config'}, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('[Content Script] Failed to get config:', chrome.runtime.lastError.message);
+        showConfigError('Extension communication failed: ' + chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.config) {
+        console.log('[Content Script] Configuration received, initializing...');
+        window.args = response.config
+        initializeViewer()
+      } else {
+        console.error('[Content Script] No configuration received from extension');
+        showConfigError('Extension did not provide configuration');
+      }
+    })
+  } else {
+    console.error('[Content Script] Chrome runtime not available');
+    showConfigError('Chrome extension API not available');
+  }
+  
+  // Set a timeout to show error if config never arrives
+  setTimeout(() => {
+    if (!window.args && !window.notebookConfig) {
+      console.warn('Jupyter Notebook Viewer: Configuration timeout, fallback will handle this');
+    }
+  }, 2000);
+}
+
+// Use args or notebookConfig as fallback
+var config = window.args || window.notebookConfig || {}
+console.log('[Content Script] Configuration object:', config);
+console.log('[Content Script] Config details - theme:', config.theme, 'raw:', config.raw, 'compiler:', config.compiler);
+
 var state = {
-  theme: window.args.theme,
-  raw: window.args.raw,
-  themes: window.args.themes,
-  content: window.args.content,
-  compiler: window.args.compiler,
+  theme: (config.theme && config.theme !== '*') ? config.theme : 'github', // Fix theme if it's invalid
+  raw: false, // Force false for notebook rendering (config.raw should not override this for .ipynb files)
+  themes: config.themes || {wide: true},
+  content: config.content || {
+    emoji: false,
+    scroll: true,
+    toc: true,
+    mathjax: true,
+    autoreload: false,
+    mermaid: false,
+  },
+  compiler: config.compiler || 'marked',
   html: '',
   markdown: '',
   nbjson: '',
@@ -13,6 +64,19 @@ var state = {
   interval: null,
   ms: 1000,
 }
+
+console.log('[Content Script] State after forcing raw=false:', {
+  theme: state.theme,
+  raw: state.raw,
+  compiler: state.compiler
+});
+
+console.log('[Content Script] Initial state:', {
+  theme: state.theme,
+  raw: state.raw,
+  compiler: state.compiler,
+  contentKeys: Object.keys(state.content)
+});
 
 
 let mathjaxSettings = `
@@ -102,29 +166,131 @@ var oncreate = {
   }
 }
 
-function mount () {
-  $('pre').style.display = 'none'
-  var nbjson = JSON.parse($('pre').innerText)
+function showConfigError(message) {
+  console.error('[Content Script] Configuration error:', message);
+  showErrorMessage('Configuration Error', message);
+}
 
+function showMountError(message) {
+  console.error('[Content Script] Mount error:', message);
+  showErrorMessage('Processing Error', message);
+}
+
+function showErrorMessage(title, message) {
+  // Create a simple error message
+  const errorDiv = document.createElement('div');
+  errorDiv.innerHTML = `
+    <div style="
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 600px; 
+      margin: 50px auto; 
+      padding: 20px; 
+      background: #fff3cd; 
+      border: 1px solid #ffeaa7; 
+      border-radius: 6px;
+      color: #856404;
+    ">
+      <h3 style="margin-top: 0; color: #856404;">⚠️ Jupyter Notebook Viewer ${title}</h3>
+      <p><strong>Error:</strong> ${message}</p>
+      <p>The extension will provide more detailed troubleshooting guidance in a few seconds.</p>
+      <details style="margin-top: 15px;">
+        <summary style="cursor: pointer; color: #007bff;">Quick troubleshooting steps</summary>
+        <ul style="margin-top: 10px; line-height: 1.5;">
+          <li>Go to <code>chrome://extensions/</code> and verify the extension is enabled</li>
+          <li>Click "Details" and ensure "Allow access to file URLs" is enabled</li>
+          <li>Try reloading the extension and refreshing this page</li>
+          <li>Check the browser console (F12) for detailed error messages</li>
+        </ul>
+      </details>
+    </div>
+  `;
+  document.body.appendChild(errorDiv);
+}
+
+function mount () {
+  console.log('[Content Script] Mount function called');
+  const pre = $('pre');
+  if (!pre) {
+    console.error('[Content Script] No pre element found');
+    showMountError('No content found to process. This might not be a valid notebook file.');
+    return;
+  }
+  
+  console.log('[Content Script] Pre element found, hiding it');
+  pre.style.display = 'none'
+  
+  let nbjson;
+  try {
+    nbjson = JSON.parse(pre.innerText);
+    console.log('[Content Script] JSON parsed successfully, cells:', nbjson.cells ? nbjson.cells.length : 0);
+  } catch (e) {
+    console.error('[Content Script] JSON parse error:', e.message);
+    showMountError('Invalid notebook format: ' + e.message);
+    pre.style.display = 'block'; // Show raw content if JSON is invalid
+    return;
+  }
+  
+  // Validate notebook structure
+  if (!nbjson.cells && !nbjson.worksheets) {
+    console.error('[Content Script] Invalid notebook: no cells or worksheets');
+    showMountError('Invalid notebook structure: missing cells or worksheets');
+    pre.style.display = 'block';
+    return;
+  }
+
+  console.log('[Content Script] Attempting to mount Mithril component');
+  console.log('[Content Script] Mithril available:', typeof m !== 'undefined');
+  console.log('[Content Script] notebook library available:', typeof nb !== 'undefined');
+  
   m.mount($('body'), {
     oninit: () => {
+      console.log('[Content Script] Mithril oninit called, sending message to background');
       chrome.runtime.sendMessage({
         message: 'nbjson',
         compiler: state.compiler,
         nbjson: nbjson
       }, (res) => {
-        state.html = nb.parse(res.nbjson).render().innerHTML
-        m.redraw()
+        console.log('[Content Script] Received response from background:', res);
+        if (chrome.runtime.lastError) {
+          console.error('[Content Script] Runtime error:', chrome.runtime.lastError.message);
+          showMountError('Failed to communicate with extension: ' + chrome.runtime.lastError.message);
+          return;
+        }
+        
+        if (!res || !res.nbjson) {
+          console.error('[Content Script] No notebook data in response');
+          showMountError('Extension did not return notebook data');
+          return;
+        }
+        
+        try {
+          console.log('[Content Script] Parsing notebook with nb library');
+          if (typeof nb === 'undefined') {
+            throw new Error('Notebook parsing library (nb) not available');
+          }
+          
+          state.html = nb.parse(res.nbjson).render().innerHTML;
+          console.log('[Content Script] Notebook parsed successfully, HTML length:', state.html.length);
+          m.redraw();
+        } catch (e) {
+          console.error('[Content Script] Notebook parsing error:', e.message);
+          showMountError('Failed to parse notebook: ' + e.message);
+        }
       })
     },
     view: () => {
+      console.log('[Content Script] Mithril view function called');
+      console.log('[Content Script] State.raw:', state.raw, 'State.html length:', state.html ? state.html.length : 0);
+      
       var dom = []
 
       if (state.raw) {
+        console.log('[Content Script] Rendering raw markdown');
         dom.push(m('pre#_markdown', {oncreate: oncreate.markdown}, state.markdown))
         $('body').classList.remove('_toc-left', '_toc-right')
       }
       else {
+        console.log('[Content Script] Rendering HTML notebook');
         if (state.theme) {
           dom.push(m('link#_theme', {
             rel: 'stylesheet', type: 'text/css',
@@ -273,31 +439,63 @@ function anchors () {
 }
 
 var toc = (
-  link = (header) => '<a href="#' + header.id + '">' + header.title + '</a>') =>
-  Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
+  link = (header) => '<a href="#' + header.id + '">' + header.title + '</a>') => {
+  const headers = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
     .filter((node) => /h[1-6]/i.test(node.tagName))
     .map((node) => ({
       id: node.getAttribute('id'),
       level: parseInt(node.tagName.replace('H', '')),
       title: node.innerText.replace(/</g, '&lt;').replace(/>/g, '&gt;')
     }))
-    .reduce((html, header) => {
-      html += '<div class="_ul">'.repeat(header.level)
-      html += link(header)
-      html += '</div>'.repeat(header.level)
-      return html
-    }, '')
-
-if (document.readyState === 'complete') {
-  mount()
-}
-else {
-  var timeout = setInterval(() => {
-    if (document.readyState === 'complete') {
-      clearInterval(timeout)
-      mount()
+  
+  if (!headers.length) return ''
+  
+  let html = '<div class="_ul">'
+  let currentLevel = 0
+  
+  headers.forEach((header) => {
+    if (header.level > currentLevel) {
+      // Open new nested levels
+      while (currentLevel < header.level) {
+        if (currentLevel > 0) html += '<div class="_ul">'
+        currentLevel++
+      }
+    } else if (header.level < currentLevel) {
+      // Close nested levels
+      while (currentLevel > header.level) {
+        html += '</div>'
+        currentLevel--
+      }
     }
-  }, 0)
+    html += link(header)
+  })
+  
+  // Close remaining open divs
+  while (currentLevel > 0) {
+    html += '</div>'
+    currentLevel--
+  }
+  
+  return html
+}
+
+function initializeViewer() {
+  if (document.readyState === 'complete') {
+    mount()
+  }
+  else {
+    var timeout = setInterval(() => {
+      if (document.readyState === 'complete') {
+        clearInterval(timeout)
+        mount()
+      }
+    }, 0)
+  }
+}
+
+// Start initialization if configuration is available
+if (window.args || window.notebookConfig) {
+  initializeViewer()
 }
 
 if (state.content.autoreload) {

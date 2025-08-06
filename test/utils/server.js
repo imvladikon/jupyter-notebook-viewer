@@ -31,8 +31,35 @@ module.exports = () => new Promise((resolve, reject) => {
       res.end('- [ ] task')
     }
     else if (/content-options-toc/.test(req.url)) {
-      res.setHeader('Content-Type', 'text/markdown')
-      res.end('# h1\n# h2\n# h3')
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({
+        cells: [
+          {
+            cell_type: 'markdown',
+            metadata: {},
+            source: ['# h1\n']
+          },
+          {
+            cell_type: 'markdown', 
+            metadata: {},
+            source: ['# h2\n']
+          },
+          {
+            cell_type: 'markdown',
+            metadata: {},
+            source: ['# h3\n']
+          }
+        ],
+        metadata: {
+          kernelspec: {
+            display_name: 'Python 3',
+            language: 'python',
+            name: 'python3'
+          }
+        },
+        nbformat: 4,
+        nbformat_minor: 4
+      }))
     }
     else if (/content-options-scroll/.test(req.url)) {
       res.setHeader('Content-Type', 'text/markdown')

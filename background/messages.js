@@ -73,7 +73,9 @@ md.messages = ({storage, compilers, mathjax, xhr, webrequest}) => {
         themes: state.themes,
       }))
     } else if (req.message === 'popup.theme') {
+      console.log('[Background] Theme change from popup:', req.theme)
       set({theme: req.theme})
+      console.log('[Background] Notifying content script of theme change')
       notifyContent({message: 'theme', theme: req.theme})
       sendResponse()
     } else if (req.message === 'popup.raw') {

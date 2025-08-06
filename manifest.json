@@ -31,6 +31,9 @@
         "/themes/*.css",
         "/vendor/prism.min.css",
         "/vendor/katex.min.css",
+        "/vendor/katex/fonts/*.woff2",
+        "/vendor/katex/fonts/*.woff",
+        "/vendor/katex/fonts/*.ttf",
         "/vendor/mathjax/fonts/*.woff",
         "/vendor/mathjax/extensions/*.js"
       ]

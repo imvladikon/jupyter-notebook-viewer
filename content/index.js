@@ -24,6 +24,7 @@ var state = {
   compiler: window.args.compiler,
   html: '',
   notebook: null,
+  toc: '',
   reload: {
     interval: null,
     ms: 1000,
@@ -42,6 +43,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     location.reload(true)
   }
   else if (req.message === 'theme') {
+    console.log('[Content] Theme change received:', req.theme, 'from:', state.theme)
     state.theme = req.theme
     m.redraw()
   }
@@ -120,7 +122,37 @@ var update = (update) => {
       console.warn('[Content] No math rendering library available')
     }
   }
+  
+  // Make content visible after processing
+  setTimeout(() => {
+    if (markdown) markdown.style.visibility = 'visible'
+    var tocEl = $('#_toc')
+    if (tocEl && state.content.toc && !state.raw) {
+      console.log('[Content] Making TOC visible')
+      tocEl.style.visibility = 'visible'
+    }
+  }, 100)
 }
+
+// TOC generation function from markdown-viewer
+var toc = (() => {
+  var walk = (regex, string, group, result = [], match = regex.exec(string)) =>
+    !match ? result : walk(regex, string, group, result.concat(!group ? match[1] :
+      group.reduce((all, name, index) => (all[name] = match[index + 1], all), {})))
+  return {
+    render: (html) =>
+      walk(
+        /<h([1-6]) id="(.*?)">(.*?)<\/h[1-6]>/gs,
+        html,
+        ['level', 'id', 'title']
+      )
+      .reduce((toc, {id, title, level}) => toc +=
+        '<div class="_ul">'.repeat(level) +
+        '<a href="#' + id + '">' + title.replace(/<a[^>]+>/g, '').replace(/<\/a>/g, '') + '</a>' +
+        '</div>'.repeat(level)
+      , '')
+  }
+})()
 
 var render = (nbtext) => {
   console.log('[Content] Render function called with notebook text length:', nbtext.length)
@@ -142,6 +174,13 @@ var render = (nbtext) => {
     console.log('[Content] Parsing notebook with nb library')
     state.html = nb.parse(nbjson).render().innerHTML
     console.log('[Content] Notebook parsed successfully, HTML length:', state.html.length)
+    
+    // Generate TOC if enabled
+    if (state.content.toc) {
+      console.log('[Content] Generating TOC')
+      state.toc = toc.render(state.html)
+      console.log('[Content] TOC generated, length:', state.toc.length)
+    }
     
     // Store raw notebook for raw mode
     state.notebook = nbtext
@@ -192,22 +231,41 @@ function mount () {
 
         $('body').classList.remove(...Array.from($('body').classList).filter((name) => /^_theme|_color/.test(name)))
         $('body').classList.add(`_theme-${state.theme}`, `_color-${color}`)
+        
+        console.log('[Content] Applied body classes:', `_theme-${state.theme}`, `_color-${color}`)
 
         var theme = 'markdown-body notebook-viewer'
+        var dom = []
+        
+        // Add dynamic theme CSS link
+        dom.push(m('link#_theme', {
+          onupdate: onupdate.theme,
+          rel: 'stylesheet', type: 'text/css',
+          href: chrome.runtime.getURL(`/themes/${state.theme}.css`),
+        }))
         
         if (state.raw) {
           if (state.content.syntax) {
-            return m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
+            dom.push(m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
               m.trust(`<pre class="language-json"><code class="language-json">${state.notebook}</code></pre>`)
-            )
+            ))
           } else {
-            return m('pre#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html}, state.notebook)
+            dom.push(m('pre#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html}, state.notebook))
           }
         } else {
-          return m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
+          dom.push(m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
             m.trust(state.html)
-          )
+          ))
         }
+        
+        // Add TOC if enabled and available
+        if (state.content.toc && state.toc) {
+          console.log('[Content] Adding TOC to view')
+          dom.push(m('#_toc.tex2jax-ignore', m.trust(state.toc)))
+          state.raw ? $('body').classList.remove('_toc-left') : $('body').classList.add('_toc-left')
+        }
+        
+        return dom
       }
 
       return m('div', 'Loading...')

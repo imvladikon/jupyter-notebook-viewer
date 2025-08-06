@@ -5,7 +5,23 @@ var state = {
   content: {},
   theme: '',
   themes: {},
-  _themes: [],
+  _themes: [
+    'github',
+    'github-dark',
+    'markdown',
+    'markdown-alt',
+    'solarized-light',
+    'solarized-dark',
+    'ghostwriter',
+    'foghorn',
+    'godspeed',
+    'radar',
+    'torpedo',
+    'vostok',
+    'new-modern',
+    'screen',
+    'markedapp-byword'
+  ],
   raw: false,
   tab: '',
   tabs: ['theme', 'compiler', 'content'],
@@ -71,6 +87,7 @@ var events = {
 
   theme: (e) => {
     state.theme = state._themes[e.target.selectedIndex]
+    console.log('[Popup] Theme changed to:', state.theme)
     chrome.runtime.sendMessage({
       message: 'popup.theme',
       theme: state.theme
@@ -107,21 +124,7 @@ var init = (res) => {
   state.theme = res.theme
   state.themes = res.themes
 
-  // For Manifest V3, web_accessible_resources is an array of objects
-  const resources = chrome.runtime.getManifest().web_accessible_resources[0]?.resources || []
-  state._themes = resources
-    .filter((file) => file.indexOf('/themes/') === 0)
-    .map((file) => file.replace(/\/themes\/(.*)\.css/, '$1'))
-  
-  // Fallback if no themes found from web_accessible_resources
-  if (state._themes.length === 0) {
-    state._themes = [
-      'github', 'github-dark', 'markdown', 'markdown-alt', 
-      'solarized-light', 'solarized-dark', 'ghostwriter', 
-      'foghorn', 'godspeed', 'radar', 'torpedo', 'vostok',
-      'new-modern', 'screen', 'markedapp-byword'
-    ]
-  }
+  // Themes are already hardcoded in state initialization
 
   state.raw = res.raw
   state.tab = localStorage.getItem('tab') || 'theme'

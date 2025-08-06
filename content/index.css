@@ -180,3 +180,181 @@ img.emojione {
   /* prevent img stretch */
   width: auto;
 }
+
+/*---------------------------------------------------------------------------*/
+/*TOC styles from markdown-viewer*/
+
+@media (prefers-color-scheme: light) {
+  body {
+    --toc-delimiter: #e1e4e8;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    --toc-delimiter: #30363d;
+  }
+}
+
+body {
+  display: flex;
+}
+body._toc-left { padding-left: 300px !important; }
+body._toc-right { padding-right: 300px !important; }
+
+#_toc {
+  position: fixed;
+  top: 0; bottom: 0; left: 0;
+  width: 299px;
+  height: 100%;
+  border-right: 1px solid var(--toc-delimiter);
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  visibility: hidden;
+  
+  /* Theme-adaptive styling */
+  background-color: var(--color-canvas-default, #ffffff);
+  color: var(--color-text-primary, #24292e);
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  padding: 15px;
+}
+
+#_toc ._ul {
+  padding-left: 20px !important;
+  margin: 0 !important;
+}
+#_toc > ._ul {
+  padding: 0 0 0 10px !important;
+}
+#_toc > ._ul:first-child {
+  padding-top: 15px !important;
+}
+#_toc > ._ul:last-child {
+  padding-bottom: 15px !important;
+}
+#_toc ._ul a {
+  border: 0 !important;
+  padding: 5px 10px !important;
+  display: block !important;
+  
+  /* Force theme-adaptive link styling with !important */
+  color: var(--color-accent-emphasis, #0969da) !important;
+  text-decoration: none !important;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+#_toc ._ul a:hover {
+  background-color: var(--color-neutral-muted, #f6f8fa) !important;
+  text-decoration: none !important;
+}
+
+._color-light #_toc {
+  border-right: 1px solid #e1e4e8;
+  background-color: #ffffff;
+  color: #24292e;
+}
+
+._color-light #_toc ._ul a {
+  color: #0969da !important;
+}
+
+._color-light #_toc ._ul a:hover {
+  background-color: #f6f8fa !important;
+}
+
+._color-dark #_toc {
+  border-right: 1px solid #30363d;
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
+}
+
+._color-dark #_toc ._ul a {
+  color: #58a6ff !important;
+}
+
+._color-dark #_toc ._ul a:hover {
+  background-color: #21262d !important;
+}
+
+/* Theme-specific TOC styles */
+._theme-solarized-light #_toc {
+  background-color: #fdf6e3;
+  color: #657b83;
+  border-right-color: #eee8d5;
+}
+
+._theme-solarized-light #_toc ._ul a {
+  color: #268bd2 !important;
+}
+
+._theme-solarized-light #_toc ._ul a:hover {
+  background-color: #eee8d5 !important;
+}
+
+._theme-solarized-dark #_toc {
+  background-color: #002b36 !important;
+  color: #839496 !important;
+  border-right-color: #073642 !important;
+}
+
+._theme-solarized-dark #_toc ._ul a {
+  color: #268bd2 !important;
+}
+
+._theme-solarized-dark #_toc ._ul a:hover {
+  background-color: #073642 !important;
+}
+
+._theme-github-dark #_toc {
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
+  border-right-color: #30363d !important;
+}
+
+._theme-github-dark #_toc ._ul a {
+  color: #58a6ff !important;
+}
+
+._theme-github-dark #_toc ._ul a:hover {
+  background-color: #21262d !important;
+}
+
+/* Additional dark theme overrides for better visibility */
+._theme-ghostwriter #_toc ._ul a,
+._theme-radar #_toc ._ul a,
+._theme-torpedo #_toc ._ul a,
+._theme-vostok #_toc ._ul a {
+  color: #58a6ff !important;
+}
+
+._theme-ghostwriter #_toc,
+._theme-radar #_toc,
+._theme-torpedo #_toc,
+._theme-vostok #_toc {
+  background-color: #1a1a1a !important;
+  color: #e6e6e6 !important;
+}
+
+/* Fallback for any unhandled themes - ensure minimum contrast */
+#_toc ._ul a[style*="color: #000"],
+#_toc ._ul a[style*="color: black"],
+body[class*="_theme"] #_toc ._ul a:not([style*="color"]) {
+  color: #0969da !important;
+}
+
+/* Dark theme fallback - if body has dark background, use light link colors */
+body[style*="background: #"] #_toc ._ul a,
+body[style*="background-color: #0"] #_toc ._ul a,
+body[style*="background-color: #1"] #_toc ._ul a,
+body[style*="background-color: #2"] #_toc ._ul a,
+body[style*="background-color: #3"] #_toc ._ul a {
+  color: #58a6ff !important;
+}
+
+@media print {
+  body._toc-left { padding-left: 0px !important; }
+  body._toc-right { padding-right: 0px !important; }
+  #_toc { display: none; }
+}

@@ -34,8 +34,7 @@
         "/vendor/katex/fonts/*.woff2",
         "/vendor/katex/fonts/*.woff",
         "/vendor/katex/fonts/*.ttf",
-        "/vendor/mathjax/fonts/*.woff",
-        "/vendor/mathjax/extensions/*.js"
+        "/vendor/mathjax/*.js"
       ]
     }
   ],

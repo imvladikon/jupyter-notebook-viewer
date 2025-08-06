@@ -42,22 +42,9 @@ md.messages = ({storage, compilers, mathjax, xhr, webrequest}) => {
       sendResponse({message: 'html', nbjson: nbjson})
 
     } else if (req.message === 'mathjax') {
-      console.log('[Messages] Loading MathJax extension:', req.extension);
-      chrome.scripting.executeScript({
-        target: {tabId: sender.tab.id},
-        files: [
-          `/vendor/mathjax/extensions/${req.extension}.js`,
-        ],
-        injectImmediately: true
-      }, () => {
-        if (chrome.runtime.lastError) {
-          console.warn('[Messages] MathJax extension load failed:', chrome.runtime.lastError.message);
-        } else {
-          console.log('[Messages] MathJax extension loaded:', req.extension);
-        }
-        sendResponse();
-      });
-      return true; // async response
+      // MathJax extension loading removed - using minimal build
+      console.log('[Messages] MathJax extension request ignored (using minimal build)');
+      sendResponse();
     } else if (req.message === 'autoreload') {
       xhr.get(req.location, (err, body) => {
         sendResponse({err, body})

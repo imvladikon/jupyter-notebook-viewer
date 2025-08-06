@@ -10,7 +10,8 @@ zip:
 		-x "package-lock.json" \
 		-x ".gitignore" \
 		-x ".gitmodules" \
-		-x "Makefile"
+		-x "Makefile" \
+		-x "debug-cli/*"
 
 # Clean build artifacts
 clean:

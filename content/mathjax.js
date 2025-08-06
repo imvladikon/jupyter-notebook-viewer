@@ -2,16 +2,6 @@
 // Based on markdown-viewer's approach but adapted for notebooks
 
 var MathJax = {
-  loader: {
-    pathFilters: [
-      ({name}) => name.startsWith('[tex]') ? false : true // keep the name
-    ],
-    require: (path) => path.startsWith('[tex]') ?
-      chrome.runtime.sendMessage({
-        message: 'mathjax',
-        extension: path.replace('[tex]/', '')
-      }) : null
-  },
   tex: {
     inlineMath: [
       ['$', '$'],
@@ -26,7 +16,6 @@ var MathJax = {
     packages: {'[+]': ['noerrors', 'noundefined', 'ams', 'newcommand']}
   },
   chtml: {
-    fontURL: chrome.runtime.getURL('/vendor/mathjax/fonts'),
     scale: 1.0,
     mtextInheritFont: true
   },

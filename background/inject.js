@@ -49,7 +49,7 @@ md.inject = ({storage: {state}}) => (id) => {
       '/vendor/notebook.min.js',
       state.content.syntax && '/vendor/prism.min.js',
       state.content.emoji && '/content/emoji.js',
-      state.content.mathjax && ['/vendor/mathjax/tex-mml-chtml.js', '/content/mathjax.js'],
+      state.content.mathjax && ['/vendor/mathjax/tex-chtml.min.js', '/content/mathjax.js'],
       '/content/index.js',
       state.content.autoreload && '/content/autoreload.js',
     ].filter(Boolean).flat(),

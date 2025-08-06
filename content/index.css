@@ -23,6 +23,8 @@ pre#_markdown {
   padding: 32px;
   margin: 20px auto;
 }
+
+/* Simplified theme - no wide option needed */
 .markdown-body #_html>*:first-child {
   margin-top: 0 !important;
 }
@@ -53,16 +55,7 @@ pre#_markdown {
   .markdown-theme { width: 1145px !important; }
 }
 
-/*100% width*/
-.wide-theme {
-  box-sizing: border-box;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 100% !important;
-  border: none;
-  padding: 20px !important;
-  margin: 0 !important;
-}
+/* Wide theme CSS removed - using toggleable TOC instead */
 
 /*mermaid text bold effect*/
 svg[id^=mermaid] text {
@@ -70,42 +63,7 @@ svg[id^=mermaid] text {
 }
 
 /*toc*/
-body {
-  display: flex;
-}
-body._toc-left { padding-left: 300px !important; }
-body._toc-right { padding-right: 300px !important; }
-#_toc {
-  position: fixed;
-  top: 0; bottom: 0; left: 0;
-  width: 300px;
-  height: 100%;
-  background: #fafafa;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-#_toc ._ul {
-  padding: 0 0 0 20px !important;
-  margin: 0 !important;
-}
-#_toc ._ul a {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
-  font-size: 14px !important;
-  line-height: 17px !important;
-  color: #364149 !important;
-  font-weight: normal !important;
-  font-style: normal !important;
-  text-decoration: none !important;
-  text-transform: none !important;
-  letter-spacing: 0.2px !important;
-  background: none !important;
-  border: 0 !important;
-  padding: 10px 15px !important;
-  display: block !important;
-}
-#_toc ._ul a:hover {
-  text-decoration: underline !important;
-}
+/* Old TOC rules removed - using better implementation in TOC styles section below */
 
 /*anchor link*/
 @font-face {
@@ -198,19 +156,24 @@ img.emojione {
 body {
   display: flex;
 }
-body._toc-left { padding-left: 300px !important; }
-body._toc-right { padding-right: 300px !important; }
+
+/* TOC states - hidden by default, shown when _toc-visible class is added */
+body._toc-visible { 
+  padding-left: 300px !important; 
+  transition: padding-left 0.3s ease;
+}
 
 #_toc {
   position: fixed;
-  top: 0; bottom: 0; left: 0;
-  width: 299px;
+  top: 0; bottom: 0; left: -300px; /* Hidden by default */
+  width: 300px;
   height: 100%;
   border-right: 1px solid var(--toc-delimiter);
   overflow-y: auto;
   overflow-x: hidden;
   word-wrap: break-word;
-  visibility: hidden;
+  transition: left 0.3s ease;
+  z-index: 1000;
   
   /* Theme-adaptive styling */
   background-color: var(--color-canvas-default, #ffffff);
@@ -218,6 +181,53 @@ body._toc-right { padding-right: 300px !important; }
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   font-size: 14px;
   padding: 15px;
+}
+
+/* TOC visible state */
+body._toc-visible #_toc {
+  left: 0;
+}
+
+/* TOC Toggle Button */
+#_toc-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--color-canvas-default, #ffffff);
+  border: 1px solid var(--color-border-default, #d0d7de);
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--color-text-primary, #24292e);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#_toc-toggle:hover {
+  background: var(--color-canvas-subtle, #f6f8fa);
+  border-color: var(--color-border-muted, #d0d7de);
+}
+
+/* Move toggle when TOC is visible */
+body._toc-visible #_toc-toggle {
+  left: 320px;
+}
+
+/* Theme-specific toggle button styling */
+._color-dark #_toc-toggle {
+  background: #0d1117 !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+._color-dark #_toc-toggle:hover {
+  background: #21262d !important;
 }
 
 #_toc ._ul {

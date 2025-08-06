@@ -230,19 +230,22 @@ function mount () {
           ? 'dark' : 'light'
 
         $('body').classList.remove(...Array.from($('body').classList).filter((name) => /^_theme|_color/.test(name)))
-        $('body').classList.add(`_theme-${state.theme}`, `_color-${color}`)
-        
-        console.log('[Content] Applied body classes:', `_theme-${state.theme}`, `_color-${color}`)
 
-        var theme = 'markdown-body notebook-viewer'
+        // Apply theme classes - simplified, no wide option
+        var theme = (/github(-dark)?/.test(state.theme) ? 'markdown-body' : 'markdown-theme') + 
+          ' notebook-viewer'
         var dom = []
         
-        // Add dynamic theme CSS link
+        // Add dynamic theme CSS link FIRST (like markdown-viewer)
         dom.push(m('link#_theme', {
           onupdate: onupdate.theme,
           rel: 'stylesheet', type: 'text/css',
           href: chrome.runtime.getURL(`/themes/${state.theme}.css`),
         }))
+        
+        // Apply body classes AFTER theme link (like markdown-viewer)
+        $('body').classList.add(`_theme-${state.theme}`, `_color-${color}`)
+        console.log('[Content] Applied body classes:', `_theme-${state.theme}`, `_color-${color}`)
         
         if (state.raw) {
           if (state.content.syntax) {
@@ -261,8 +264,17 @@ function mount () {
         // Add TOC if enabled and available
         if (state.content.toc && state.toc) {
           console.log('[Content] Adding TOC to view')
+          
+          // Add TOC toggle button
+          dom.push(m('#_toc-toggle', {
+            onclick: () => {
+              $('body').classList.toggle('_toc-visible')
+            },
+            title: 'Toggle Table of Contents'
+          }, '☰'))
+          
+          // Add TOC panel
           dom.push(m('#_toc.tex2jax-ignore', m.trust(state.toc)))
-          state.raw ? $('body').classList.remove('_toc-left') : $('body').classList.add('_toc-left')
         }
         
         return dom

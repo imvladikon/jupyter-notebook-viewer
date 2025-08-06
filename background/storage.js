@@ -66,7 +66,7 @@ md.storage.defaults = (compilers) => {
     raw: false,
     match,
     themes: {
-      wide: true,
+      // wide option removed - using toggleable TOC instead
     },
     content: {
       emoji: false,

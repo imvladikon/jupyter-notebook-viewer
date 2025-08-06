@@ -28,7 +28,7 @@ var state = {
   compilers: [],
   description: {
     themes: {
-      wide: '100% width',
+      // wide option removed - using toggleable TOC instead
     },
     compiler: {},
     content: {

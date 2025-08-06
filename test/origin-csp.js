@@ -16,7 +16,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
       document.querySelector('.m-list li:nth-of-type(1) input').dispatchEvent(new Event('keyup'))
     })
     // there is debounce timeout of 750ms in the options UI
-    await advanced.waitForTimeout(800)
+    await new Promise(resolve => setTimeout(resolve, 800))
   })
 
   describe('not correct content-type + non matching path', () => {
@@ -36,7 +36,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-no-header-no-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
     })
     it('non matching urls should be skipped', async () => {
       t.strictEqual(
@@ -71,7 +71,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-header')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
     })
     it('non matching urls cannot be checked for enabled csp', async () => {
       t.strictEqual(
@@ -107,7 +107,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
     })
     it('webRequest.onHeadersReceived event is enabled', async () => {
       t.strictEqual(
@@ -135,12 +135,12 @@ module.exports = ({extensions, popup, advanced, content}) => {
       if (await advanced.evaluate(() => origins.state.origins['http://localhost:3000'].csp)) {
         await advanced.click('.m-list li:nth-of-type(1) .m-switch')
       }
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() => {
@@ -162,12 +162,12 @@ module.exports = ({extensions, popup, advanced, content}) => {
       if (!await advanced.evaluate(() => origins.state.origins['http://localhost:3000'].csp)) {
         await advanced.click('.m-list li:nth-of-type(1) .m-switch')
       }
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -184,12 +184,12 @@ module.exports = ({extensions, popup, advanced, content}) => {
       if (await advanced.evaluate(() => origins.state.origins['http://localhost:3000'].csp)) {
         await advanced.click('.m-list li:nth-of-type(1) .m-switch')
       }
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() => {
@@ -220,7 +220,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
         await advanced.click('.m-list li:nth-of-type(1) .m-switch')
       }
       await advanced.reload()
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // expand origin
       await advanced.click('.m-list li:nth-of-type(1)')
@@ -246,7 +246,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
         await advanced.click('.m-list li:nth-of-type(1) .m-switch')
       }
       await advanced.reload()
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // expand origin
       await advanced.click('.m-list li:nth-of-type(1)')
@@ -294,7 +294,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
             .querySelectorAll('extensions-item'))[0].shadowRoot
             .querySelector('#enableToggle').click()
       })
-      await extensions.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       // check
       t.equal(
         await extensions.evaluate(() =>
@@ -311,7 +311,7 @@ module.exports = ({extensions, popup, advanced, content}) => {
       // go to page serving content with strict csp
       await content.goto('http://localhost:3000/csp-match-path')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
     })
     // TEST: localStorage is no longer available even with disabled CSP
     it.skip('the tab is reloaded on event page wakeup', async () => {

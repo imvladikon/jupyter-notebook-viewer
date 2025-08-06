@@ -102,7 +102,7 @@ module.exports = ({popup, advanced, content}) => {
         document.querySelector('.m-add-theme [placeholder~=URL]').dispatchEvent(new Event('change'))
         document.querySelector('.m-add-theme button').click()
       })
-      await advanced.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await advanced.evaluate(() =>
           document.querySelectorAll('.m-themes .m-list li').length
@@ -152,7 +152,7 @@ module.exports = ({popup, advanced, content}) => {
 
     it('preserve state', async () => {
       await advanced.reload()
-      await advanced.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await advanced.evaluate(() =>
           document.querySelectorAll('.m-themes .m-list').length
@@ -203,7 +203,7 @@ module.exports = ({popup, advanced, content}) => {
       )
 
       await popup.reload()
-      await popup.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await popup.evaluate(() =>
           state.theme.name
@@ -216,7 +216,7 @@ module.exports = ({popup, advanced, content}) => {
     it('theme should be added to the content', async () => {
       await content.goto('http://localhost:3000/correct-content-type')
       await content.bringToFront()
-      await content.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await content.evaluate(() =>
           document.querySelector('#_theme').getAttribute('href')
@@ -262,11 +262,11 @@ module.exports = ({popup, advanced, content}) => {
         document.querySelector('.m-themes .m-option:nth-of-type(2) input').dispatchEvent(new Event('keyup'))
       })
       // there is debounce timeout of 750ms in the options UI
-      await advanced.waitFor(800)
+      await new Promise(resolve => setTimeout(resolve, 800))
 
       // reload
       await advanced.reload()
-      await advanced.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await advanced.evaluate(() =>
@@ -280,7 +280,7 @@ module.exports = ({popup, advanced, content}) => {
     it('check content', async () => {
       await content.goto('http://localhost:3000/correct-content-type')
       await content.bringToFront()
-      await content.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await content.evaluate(() =>
           document.querySelector('#_theme').getAttribute('href')
@@ -328,7 +328,7 @@ module.exports = ({popup, advanced, content}) => {
         document.querySelector('.m-themes .m-option:nth-of-type(1) input').dispatchEvent(new Event('keyup'))
       })
       // there is debounce timeout of 750ms in the options UI
-      await advanced.waitFor(800)
+      await new Promise(resolve => setTimeout(resolve, 800))
 
       t.equal(
         await advanced.evaluate(() =>
@@ -340,7 +340,7 @@ module.exports = ({popup, advanced, content}) => {
 
       // reload
       await advanced.reload()
-      await advanced.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await advanced.evaluate(() =>
@@ -377,7 +377,7 @@ module.exports = ({popup, advanced, content}) => {
     it('check content', async () => {
       await content.goto('http://localhost:3000/correct-content-type')
       await content.bringToFront()
-      await content.waitFor(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.ok(
         /github\.css$/.test(
           await content.evaluate(() =>

@@ -12,36 +12,35 @@
     "url": "https://github.com/imvladikon/jupyter-notebook-viewer.git"
   },
   "dependencies": {
-    "@material/button": "^0.37.1",
-    "@material/ripple": "^0.37.1",
-    "@material/switch": "^0.36.1",
-    "@material/tabs": "^0.37.1",
-    "@material/textfield": "^0.37.1",
-    "marked": "^1.2.7",
-    "mithril": "^1.1.6",
-    "prismjs": "^1.22.0",
-    "remark": "^13.0.0",
-    "remark-breaks": "^2.0.1",
-    "remark-footnotes": "^3.0.0",
-    "remark-frontmatter": "^3.0.0",
-    "remark-gfm": "^1.0.0",
-    "remark-html": "^13.0.1",
-    "remark-slug": "^6.0.0"
+    "@material/button": "^0.44.1",
+    "@material/ripple": "^0.44.1",
+    "@material/switch": "^0.44.1",
+    "@material/tabs": "^2.3.0",
+    "@material/textfield": "^0.44.1",
+    "marked": "^12.0.0",
+    "mithril": "^2.3.3",
+    "prismjs": "^1.29.0",
+    "remark": "^15.0.1",
+    "remark-breaks": "^4.0.0",
+    "remark-footnotes": "^4.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-html": "^16.0.1",
+    "remark-slug": "^7.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
+    "@babel/cli": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
     "browserify": "^17.0.0",
-    "csso-cli": "^2.0.2",
-    "iconv-lite": "^0.4.24",
-    "mocha": "^7.2.0",
-    "node-sass": "^5.0.0",
-    "puppeteer": "5.4.1",
-    "rollup": "^2.35.1",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "terser": "^5.5.1",
-    "uglify-js": "^3.12.2"
+    "csso-cli": "^4.0.2",
+    "iconv-lite": "^0.6.3",
+    "mocha": "^10.2.0",
+    "puppeteer": "^22.8.2",
+    "rollup": "^4.9.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "terser": "^5.26.0",
+    "uglify-js": "^3.17.0"
   },
   "bin": {},
   "main": "",
@@ -55,6 +54,6 @@
     "build:themes": "./build/themes/themes.sh"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=18.0.0"
   }
 }

@@ -16,18 +16,19 @@ md.compilers.remark = (() => {
   var ctor = ({storage: {state}}) => ({
     defaults,
     description,
-    compile: (markdown) =>
-      remark.unified()
-        .use(remark.parse)
-        .use(state.remark.gfm ? remark.gfm : undefined)
-        .use(state.remark.breaks ? remark.breaks : undefined)
-        .use(state.remark.footnotes ? remark.footnotes : undefined)
-        .use(remark.stringify)
-        .use(remark.slug)
-        .use(remark.frontmatter, ['yaml', 'toml'])
-        .use(remark.html, state.remark) // sanitize
-        .processSync(markdown)
-        .contents
+    compile: (markdown) => {
+      // Remark v15+ API - using unified processor
+      const processor = remark.unified()
+        .use(remark.remarkParse)
+        .use(state.remark.gfm ? remark.remarkGfm : undefined)
+        .use(state.remark.breaks ? remark.remarkBreaks : undefined)
+        .use(state.remark.footnotes ? remark.remarkFootnotes : undefined)
+        .use(remark.remarkSlug)
+        .use(remark.remarkFrontmatter, ['yaml', 'toml'])
+        .use(remark.remarkHtml, state.remark) // sanitize
+      
+      return processor.processSync(markdown).toString()
+    }
   })
 
   return Object.assign(ctor, {defaults, description})

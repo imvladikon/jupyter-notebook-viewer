@@ -1,13 +1,16 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name"            : "Jupyter Notebook Viewer",
-  "version"         : "0.6",
+  "version"         : "0.7",
   "description"     : "Jupyter Notebook Viewer",
 
-  "browser_action": {
+  "action": {
     "default_icon": {
+      "16" : "/icons/icon16.png",
       "19" : "/icons/icon19.png",
-      "38" : "/icons/icon38.png"
+      "38" : "/icons/icon38.png",
+      "48" : "/icons/icon48.png",
+      "128": "/icons/icon128.png"
     },
     "default_title": "Jupyter Notebook Viewer",
     "default_popup": "/popup/index.html"
@@ -16,50 +19,20 @@
   "options_page": "/options/index.html",
 
   "background" : {
-    "scripts": [
-      "/vendor/marked.min.js",
-      "/vendor/remark.min.js",
-
-      "/background/compilers/marked.js",
-      "/background/compilers/remark.js",
-
-      "/background/storage.js",
-      "/background/webrequest.js",
-      "/background/detect.js",
-      "/background/inject.js",
-      "/background/messages.js",
-      "/background/mathjax.js",
-      "/background/xhr.js",
-
-      "/background/index.js"
-    ],
-    "persistent": false
+    "service_worker": "/background/service-worker.js"
   },
 
   "web_accessible_resources": [
-    "/themes/github.css",
-    "/themes/github-dark.css",
-
-    "/themes/godspeed.css",
-    "/themes/new-modern.css",
-    "/themes/torpedo.css",
-    "/themes/vostok.css",
-
-    "/themes/ghostwriter.css",
-    "/themes/radar.css",
-    "/themes/foghorn.css",
-    "/themes/markdown.css",
-    "/themes/markedapp-byword.css",
-    "/themes/solarized-dark.css",
-    "/themes/solarized-light.css",
-
-    "/themes/screen.css",
-    "/themes/markdown5.css",
-    "/themes/markdown6.css",
-    "/themes/markdown7.css",
-    "/themes/markdown8.css",
-    "/themes/markdown9.css",
-    "/themes/markdown-alt.css"
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "/themes/*.css",
+        "/vendor/prism.min.css",
+        "/vendor/katex.min.css"
+      ]
+    }
   ],
 
   "icons": {
@@ -68,19 +41,23 @@
     "128": "/icons/icon128.png"
   },
 
-  "homepage_url": "https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk",
+  "homepage_url": "https://chrome.google.com/webstore/detail/jupyter-notebook-viewer/ocabfdicbcamoonfhalkdojedklfcjmf",
 
   "permissions": [
     "storage",
+    "scripting"
+  ],
+
+  "host_permissions": [
     "file:///*",
     "http://localhost:3000/*"
   ],
 
+  "optional_host_permissions": [
+    "*://*/"
+  ],
+
   "optional_permissions": [
-    "https://*/",
-    "http://*/",
-    "*://*/",
-    "webRequest",
-    "webRequestBlocking"
+    "webRequest"
   ]
 }

@@ -107,7 +107,9 @@ var init = (res) => {
   state.theme = res.theme
   state.themes = res.themes
 
-  state._themes = chrome.runtime.getManifest().web_accessible_resources
+  // For Manifest V3, web_accessible_resources is an array of objects
+  const resources = chrome.runtime.getManifest().web_accessible_resources[0]?.resources || []
+  state._themes = resources
     .filter((file) => file.indexOf('/themes/') === 0)
     .map((file) => file.replace(/\/themes\/(.*)\.css/, '$1'))
 

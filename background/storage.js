@@ -35,14 +35,13 @@ md.storage = ({compilers}) => {
 }
 
 md.storage.defaults = (compilers) => {
-  var match = 'ipynb'
-  //TODO:regexp url
+  var match = '\\.ipynb(?:#.*|\\?.*)?$'
 
   var defaults = {
     theme: 'github',
     compiler: 'marked',
-    raw: false,
-    header: true,
+    raw: 'ipynb',
+    header: false,
     match,
     themes: {
       wide: true,

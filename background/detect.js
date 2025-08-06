@@ -10,17 +10,28 @@ md.detect = ({storage: {state}, inject}) => {
     })
   `
 
-  var tab = (id, info, tab) => {
+  var tab = async (id, info, tab) => {
     if (info.status === 'loading') {
-      // try
-      chrome.tabs.executeScript(id, {code, runAt: 'document_start'}, (res) => {
-        if (chrome.runtime.lastError) {
-          // origin not allowed
+      try {
+        // Try to execute detection script
+        const results = await chrome.scripting.executeScript({
+          target: {tabId: id},
+          func: () => {
+            return JSON.stringify({
+              url: window.location.href,
+              header: document.contentType,
+              loaded: !!window.state,
+            })
+          },
+          injectImmediately: true
+        })
+
+        if (!results || !results[0] || !results[0].result) {
           return
         }
 
         try {
-          var win = JSON.parse(res)
+          var win = JSON.parse(results[0].result)
         } catch (err) {
           // JSON parse error
           return
@@ -39,7 +50,10 @@ md.detect = ({storage: {state}, inject}) => {
             inject(id)
           }
         }
-      })
+      } catch (err) {
+        // origin not allowed or other error
+        return
+      }
     }
   }
 
@@ -50,6 +64,26 @@ md.detect = ({storage: {state}, inject}) => {
   var match = (url) => {
     var location = new URL(url)
 
+    // Check if URL ends with .ipynb
+    if (location.pathname.endsWith('.ipynb')) {
+      var origin =
+        state.origins[location.origin] ||
+        state.origins[location.protocol + '//' + location.hostname] ||
+        state.origins['*://' + location.host] ||
+        state.origins['*://' + location.hostname] ||
+        state.origins['*://*']
+
+      // If no specific origin found but it's a .ipynb file, use file:// origin
+      if (!origin && location.protocol === 'file:') {
+        origin = state.origins['file://']
+      }
+
+      if (origin) {
+        return origin
+      }
+    }
+
+    // Legacy match pattern support
     var origin =
       state.origins[location.origin] ||
       state.origins[location.protocol + '//' + location.hostname] ||

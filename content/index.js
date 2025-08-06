@@ -1,11 +1,11 @@
 var $ = document.querySelector.bind(document)
 
 var state = {
-  theme,
-  raw,
-  themes,
-  content,
-  compiler,
+  theme: window.args.theme,
+  raw: window.args.raw,
+  themes: window.args.themes,
+  content: window.args.content,
+  compiler: window.args.compiler,
   html: '',
   markdown: '',
   nbjson: '',

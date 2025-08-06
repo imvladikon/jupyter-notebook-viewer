@@ -12,7 +12,7 @@ module.exports = ({popup, advanced, content}) => {
   describe('defaults', () => {
     it('localhost:3000', async () => {
       await advanced.bringToFront()
-      await advanced.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
       t.equal(
         await advanced.evaluate(() =>
           document.querySelectorAll('.m-origins .m-list li').length

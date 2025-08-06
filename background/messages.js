@@ -1,9 +1,23 @@
-md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webrequest}) => {
+md.messages = ({storage, compilers, mathjax, xhr, webrequest}) => {
+  // Extract storage properties
+  const {defaults, state, set} = storage || {}
 
   return (req, sender, sendResponse) => {
 
     // content
-    if (req.message === 'markdown') {
+    if (req.message === 'ping') {
+      sendResponse({message: 'pong', status: 'ok', extension: 'Jupyter Notebook Viewer'})
+    } else if (req.message === 'get-config') {
+      sendResponse({
+        config: {
+          theme: state.theme,
+          raw: state.raw,
+          themes: state.themes,
+          content: state.content,
+          compiler: state.compiler
+        }
+      })
+    } else if (req.message === 'markdown') {
       var markdown = req.markdown
 
       if (state.content.mathjax) {
@@ -19,10 +33,18 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
 
       sendResponse({message: 'html', html})
     } else if (req.message === 'nbjson') {
+      console.log('[Messages] Processing nbjson request');
+      console.log('[Messages] Current compiler:', state.compiler);
+      console.log('[Messages] Available compilers:', compilers ? Object.keys(compilers) : 'none');
+      console.log('[Messages] Notebook cells:', req.nbjson && req.nbjson.cells ? req.nbjson.cells.length : 0);
 
       var nbjson = req.nbjson
       sendResponse({message: 'html', nbjson: nbjson})
 
+    } else if (req.message === 'mathjax') {
+      // MathJax extension loading removed - using minimal build
+      console.log('[Messages] MathJax extension request ignored (using minimal build)');
+      sendResponse();
     } else if (req.message === 'autoreload') {
       xhr.get(req.location, (err, body) => {
         sendResponse({err, body})
@@ -38,7 +60,9 @@ md.messages = ({storage: {defaults, state, set}, compilers, mathjax, xhr, webreq
         themes: state.themes,
       }))
     } else if (req.message === 'popup.theme') {
+      console.log('[Background] Theme change from popup:', req.theme)
       set({theme: req.theme})
+      console.log('[Background] Notifying content script of theme change')
       notifyContent({message: 'theme', theme: req.theme})
       sendResponse()
     } else if (req.message === 'popup.raw') {

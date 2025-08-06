@@ -1,42 +1,59 @@
+// Clean injection implementation based on markdown-viewer patterns
+// Conditional script injection and simplified logic
+
 md.inject = ({storage: {state}}) => (id) => {
+  
+  console.log('[Inject] Injecting into tab', id, 'with state:', {
+    theme: state.theme,
+    content: state.content
+  })
 
-  chrome.tabs.executeScript(id, {
-    code: `
+  chrome.scripting.executeScript({
+    target: {tabId: id},
+    args: [{
+      theme: state.theme,
+      raw: false, // Force false for notebook rendering
+      themes: state.themes,
+      content: state.content,
+      compiler: state.compiler,
+    }],
+    func: (_args) => {
       document.querySelector('pre').style.visibility = 'hidden'
-      var theme = ${JSON.stringify(state.theme)}
-      var raw = ${state.raw}
-      var themes = ${JSON.stringify(state.themes)}
-      var content = ${JSON.stringify(state.content)}
-      var compiler = '${state.compiler}'
-    `,
-    runAt: 'document_start'
+      window.args = _args
+    },
+    injectImmediately: true
   })
 
-  chrome.tabs.insertCSS(id, {file: 'content/index.css', runAt: 'document_start'})
-  chrome.tabs.insertCSS(id, {file: 'vendor/prism.min.css', runAt: 'document_start'})
-  chrome.tabs.insertCSS(id, {
-    file: 'https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css',
-    runAt: 'document_start'
+  var cssFiles = [
+    '/content/index.css',
+    '/vendor/prism.min.css',
+    '/vendor/katex.min.css',
+    state.theme && `/themes/${state.theme}.css`,
+  ].filter(Boolean)
+  
+  console.log('[Inject] Inserting CSS files:', cssFiles)
+  
+  chrome.scripting.insertCSS({
+    target: {tabId: id},
+    files: cssFiles
   })
 
-  chrome.tabs.executeScript(id, {file: 'vendor/mithril.min.js', runAt: 'document_start'})
-  chrome.tabs.executeScript(id, {file: 'vendor/es5-shim.min.js', runAt: 'document_start'})
-  chrome.tabs.executeScript(id, {file: 'vendor/marked.min.js', runAt: 'document_start'})
-  chrome.tabs.executeScript(id, {file: 'vendor/ansi_up.min.js', runAt: 'document_start'})
-  chrome.tabs.executeScript(id, {file: 'vendor/prism.min.js', runAt: 'document_start'})
-  chrome.tabs.executeScript(id, {
-    file: 'https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js',
-    runAt: 'document_start'
+  chrome.scripting.executeScript({
+    target: {tabId: id},
+    files: [
+      '/vendor/mithril.min.js',
+      '/vendor/marked.min.js',
+      '/vendor/ansi_up.min.js',
+      '/vendor/katex.min.js',
+      '/vendor/katex-auto-render.min.js',
+      '/vendor/notebook.min.js',
+      state.content.syntax && '/vendor/prism.min.js',
+      state.content.emoji && '/content/emoji.js',
+      state.content.mathjax && ['/vendor/mathjax/tex-chtml.min.js', '/content/mathjax.js'],
+      '/content/index.js',
+      state.content.autoreload && '/content/autoreload.js',
+    ].filter(Boolean).flat(),
+    injectImmediately: true
   })
-  chrome.tabs.executeScript(id, {
-    file: 'https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/contrib/auto-render.min.js',
-    runAt: 'document_start'
-  })
-  chrome.tabs.executeScript(id, {file: 'vendor/notebook.min.js', runAt: 'document_start'})
 
-
-  if (state.content.emoji) {
-    chrome.tabs.executeScript(id, {file: 'content/emoji.js', runAt: 'document_start'})
-  }
-  chrome.tabs.executeScript(id, {file: 'content/index.js', runAt: 'document_start'})
 }

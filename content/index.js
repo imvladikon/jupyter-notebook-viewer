@@ -1,70 +1,49 @@
+// Clean content script based on markdown-viewer patterns
+// Simplified Mithril-based rendering
+
+console.log('[Content] Starting Jupyter Notebook Viewer')
+console.log('[Content] args available:', !!window.args)
+console.log('[Content] Mithril available:', typeof m !== 'undefined')
+
 var $ = document.querySelector.bind(document)
 
-var state = {
-  theme,
-  raw,
-  themes,
-  content,
-  compiler,
-  html: '',
-  markdown: '',
-  nbjson: '',
-  toc: '',
-  interval: null,
-  ms: 1000,
+// Check if args is available
+if (!window.args) {
+  console.error('[Content] window.args not available, extension not properly injected')
+  document.body.innerHTML = '<div style="padding:20px;color:red;">Extension initialization failed - window.args not available</div>'
+  throw new Error('Extension not properly initialized')
 }
 
+console.log('[Content] Args received:', window.args)
 
-let mathjaxSettings = `
-  // TeX-AMS_HTML
-  MathJax.Hub.Config({
-    jax: [
-      'input/TeX',
-      'output/HTML-CSS',
-      'output/PreviewHTML',
-    ],
-    extensions: [
-      'tex2jax.js',
-      'AssistiveMML.js',
-      'a11y/accessibility-menu.js',
-    ],
-    TeX: {
-      extensions: [
-        'AMSmath.js',
-        'AMSsymbols.js',
-        'noErrors.js',
-        'noUndefined.js',
-      ]
-    },
-    tex2jax: {
-      inlineMath: [
-        ['$', '$'],
-        ['\\\\(', '\\\\)'],
-      ],
-      displayMath: [
-        ['$$', '$$'],
-        ['\\\\[', '\\\\]'],
-      ],
-      processEscapes: true
-    },
-    showMathMenu: false,
-    showProcessingMessages: false,
-    messageStyle: 'none',
-    skipStartupTypeset: true, // disable initial rendering
-    positionToHash: false
-  })
-  // set specific container to render, can be delayed too
-  MathJax.Hub.Queue(
-    ['Typeset', MathJax.Hub, '_html']
-  )
-`;
-
+var state = {
+  theme: window.args.theme,
+  raw: window.args.raw,
+  themes: window.args.themes,
+  content: window.args.content,
+  compiler: window.args.compiler,
+  html: '',
+  notebook: null,
+  toc: '',
+  reload: {
+    interval: null,
+    ms: 1000,
+    nb: false,
+  },
+  _themes: {
+    'github': 'light',
+    'github-dark': 'dark',
+    'jupyter': 'light',
+    'custom': 'auto',
+  }
+}
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.message === 'reload') {
     location.reload(true)
   }
   else if (req.message === 'theme') {
+    console.log('[Content] Theme change received:', req.theme, 'from:', state.theme)
     state.theme = req.theme
     m.redraw()
   }
@@ -74,280 +53,236 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   }
   else if (req.message === 'raw') {
     state.raw = req.raw
+    state.reload.nb = true
     m.redraw()
   }
   else if (req.message === 'autoreload') {
-    clearInterval(state.interval)
+    clearInterval(state.reload.interval)
   }
 })
 
 var oncreate = {
-  markdown: () => {
-    scroll.body()
-  },
   html: () => {
-    scroll.body()
+    update()
+  }
+}
 
-    if (state.content.toc && !state.toc) {
-      state.toc = toc()
-      m.redraw()
+var onupdate = {
+  html: () => {
+    if (state.reload.nb) {
+      state.reload.nb = false
+      update(true)
     }
-
-    setTimeout(() => Prism.highlightAll(), 20)
-
-    anchors()
   },
-  toc: () => {
-    scroll.toc()
+  theme: () => {
+    if (state.content.mathjax) {
+      setTimeout(() => {
+        if (window.MathJax && MathJax.Hub) {
+          MathJax.Hub.Queue(['Typeset', MathJax.Hub, '_html'])
+        }
+      }, 0)
+    }
+  }
+}
+
+var update = (update) => {
+  console.log('[Content] Update function called')
+  var markdown = $('#_markdown')
+  if (!markdown) {
+    console.warn('[Content] #_markdown element not found')
+    return
+  }
+  
+  if (state.content.syntax && typeof Prism !== 'undefined') {
+    console.log('[Content] Running Prism syntax highlighting')
+    Prism.highlightAllUnder(markdown)
+  }
+  
+  // Try both MathJax and KaTeX
+  if (state.content.mathjax) {
+    if (window.MathJax && MathJax.Hub) {
+      console.log('[Content] Running MathJax rendering')
+      MathJax.Hub.Queue(['Typeset', MathJax.Hub, '_markdown'])
+    } else if (typeof renderMathInElement !== 'undefined') {
+      console.log('[Content] Running KaTeX rendering')
+      renderMathInElement(markdown, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '\\[', right: '\\]', display: true},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '$', right: '$', display: false},
+          {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+          {left: '\\begin{align}', right: '\\end{align}', display: true},
+          {left: '\\begin{alignat}', right: '\\end{alignat}', display: true},
+          {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+          {left: '\\begin{multline}', right: '\\end{multline}', display: true}
+        ]
+      })
+    } else {
+      console.warn('[Content] No math rendering library available')
+    }
+  }
+  
+  // Make content visible after processing
+  setTimeout(() => {
+    if (markdown) markdown.style.visibility = 'visible'
+    var tocEl = $('#_toc')
+    if (tocEl && state.content.toc && !state.raw) {
+      console.log('[Content] Making TOC visible')
+      tocEl.style.visibility = 'visible'
+    }
+  }, 100)
+}
+
+// TOC generation function from markdown-viewer
+var toc = (() => {
+  var walk = (regex, string, group, result = [], match = regex.exec(string)) =>
+    !match ? result : walk(regex, string, group, result.concat(!group ? match[1] :
+      group.reduce((all, name, index) => (all[name] = match[index + 1], all), {})))
+  return {
+    render: (html) =>
+      walk(
+        /<h([1-6]) id="(.*?)">(.*?)<\/h[1-6]>/gs,
+        html,
+        ['level', 'id', 'title']
+      )
+      .reduce((toc, {id, title, level}) => toc +=
+        '<div class="_ul">'.repeat(level) +
+        '<a href="#' + id + '">' + title.replace(/<a[^>]+>/g, '').replace(/<\/a>/g, '') + '</a>' +
+        '</div>'.repeat(level)
+      , '')
+  }
+})()
+
+var render = (nbtext) => {
+  console.log('[Content] Render function called with notebook text length:', nbtext.length)
+  
+  try {
+    // Parse notebook JSON
+    var nbjson = JSON.parse(nbtext)
+    console.log('[Content] JSON parsed successfully, cells:', nbjson.cells ? nbjson.cells.length : 0)
+    
+    // Check if notebook library is available
+    if (typeof nb === 'undefined') {
+      console.error('[Content] Notebook parsing library (nb) not available')
+      state.html = '<div style="padding:20px;color:red;">Notebook parsing library not loaded</div>'
+      m.redraw()
+      return
+    }
+    
+    // Parse and render notebook
+    console.log('[Content] Parsing notebook with nb library')
+    state.html = nb.parse(nbjson).render().innerHTML
+    console.log('[Content] Notebook parsed successfully, HTML length:', state.html.length)
+    
+    // Generate TOC if enabled
+    if (state.content.toc) {
+      console.log('[Content] Generating TOC')
+      state.toc = toc.render(state.html)
+      console.log('[Content] TOC generated, length:', state.toc.length)
+    }
+    
+    // Store raw notebook for raw mode
+    state.notebook = nbtext
+    
+    m.redraw()
+    
+  } catch (e) {
+    console.error('[Content] Failed to parse notebook:', e.message)
+    state.html = '<div style="padding:20px;color:red;">Failed to parse notebook: ' + e.message + '</div>'
+    state.notebook = nbtext
+    m.redraw()
   }
 }
 
 function mount () {
-  $('pre').style.display = 'none'
-  var nbjson = JSON.parse($('pre').innerText)
-
+  console.log('[Content] Mount function called')
+  var pre = $('pre')
+  if (!pre) {
+    console.error('[Content] No <pre> element found')
+    return
+  }
+  
+  console.log('[Content] Pre element found, hiding it')
+  pre.style.display = 'none'
+  var nbtext = pre.innerText
+  console.log('[Content] Notebook text length:', nbtext.length)
+  
+  if (typeof m === 'undefined') {
+    console.error('[Content] Mithril not available')
+    document.body.innerHTML = '<div style="padding:20px;color:red;">Mithril library not loaded</div>'
+    return
+  }
+  
+  console.log('[Content] Mounting Mithril component')
   m.mount($('body'), {
     oninit: () => {
-      chrome.runtime.sendMessage({
-        message: 'nbjson',
-        compiler: state.compiler,
-        nbjson: nbjson
-      }, (res) => {
-        state.html = nb.parse(res.nbjson).render().innerHTML
-        m.redraw()
-      })
+      console.log('[Content] Mithril oninit called, rendering notebook')
+      render(nbtext)
     },
     view: () => {
-      var dom = []
+      console.log('[Content] View function called, state.html length:', state.html ? state.html.length : 0)
+      
+      if (state.html) {
+        // Apply CSS classes to body
+        var color = state._themes[state.theme] === 'dark' ||
+          (state._themes[state.theme] === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          ? 'dark' : 'light'
 
-      if (state.raw) {
-        dom.push(m('pre#_markdown', {oncreate: oncreate.markdown}, state.markdown))
-        $('body').classList.remove('_toc-left', '_toc-right')
-      }
-      else {
-        if (state.theme) {
-          dom.push(m('link#_theme', {
-            rel: 'stylesheet', type: 'text/css',
-            href: chrome.runtime.getURL(`/themes/${state.theme}.css`),
-          }))
-        }
-        if (state.html) {
-          dom.push(m('#_html', {oncreate: oncreate.html,
-            class: (/github(-dark)?/.test(state.theme) ? 'markdown-body' : 'markdown-theme') +
-            (state.themes.wide ? ' wide-theme' : '')
-          },
+        $('body').classList.remove(...Array.from($('body').classList).filter((name) => /^_theme|_color/.test(name)))
+
+        // Apply theme classes - simplified, no wide option
+        var theme = (/github(-dark)?/.test(state.theme) ? 'markdown-body' : 'markdown-theme') + 
+          ' notebook-viewer'
+        var dom = []
+        
+        // Add dynamic theme CSS link FIRST (like markdown-viewer)
+        dom.push(m('link#_theme', {
+          onupdate: onupdate.theme,
+          rel: 'stylesheet', type: 'text/css',
+          href: chrome.runtime.getURL(`/themes/${state.theme}.css`),
+        }))
+        
+        // Apply body classes AFTER theme link (like markdown-viewer)
+        $('body').classList.add(`_theme-${state.theme}`, `_color-${color}`)
+        console.log('[Content] Applied body classes:', `_theme-${state.theme}`, `_color-${color}`)
+        
+        if (state.raw) {
+          if (state.content.syntax) {
+            dom.push(m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
+              m.trust(`<pre class="language-json"><code class="language-json">${state.notebook}</code></pre>`)
+            ))
+          } else {
+            dom.push(m('pre#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html}, state.notebook))
+          }
+        } else {
+          dom.push(m('#_markdown', {oncreate: oncreate.html, onupdate: onupdate.html, class: theme},
             m.trust(state.html)
           ))
-          if (state.content.toc && state.toc) {
-            dom.push(m('#_toc', {oncreate: oncreate.toc},
-              m.trust(state.toc)
-            ))
-            $('body').classList.add('_toc-left')
-          }
-          if (state.content.mathjax) {
-            dom.push(m('script', {type: 'text/x-mathjax-config'}, mathjaxSettings))
-            dom.push(m('script', {
-              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js'
-            }))
-          }
-          if (state.content.mermaid) {
-            dom.push(m('script', {
-              src: 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.8.4/mermaid.min.js'
-            }))
-            dom.push(m('script', {type: 'text/javascript'}, `
-              ;(() => {
-                var timeout = setInterval(() => {
-                  if (!!(window.mermaid && mermaid.init)) {
-                    clearInterval(timeout)
-                    mermaid.init({}, 'code.language-mmd, code.language-mermaid')
-                  }
-                }, 50)
-              })()
-            `))
-          }
         }
+        
+        // Add TOC if enabled and available
+        if (state.content.toc && state.toc) {
+          console.log('[Content] Adding TOC to view')
+          
+          // Add TOC toggle button
+          dom.push(m('#_toc-toggle', {
+            onclick: () => {
+              $('body').classList.toggle('_toc-visible')
+            },
+            title: 'Toggle Table of Contents'
+          }, '☰'))
+          
+          // Add TOC panel
+          dom.push(m('#_toc.tex2jax-ignore', m.trust(state.toc)))
+        }
+        
+        return dom
       }
 
-      return (dom.length ? dom : m('div'))
+      return m('div', 'Loading...')
     }
   })
 }
 
-var scroll = (() => {
-  function race (done) {
-    Promise.race([
-      Promise.all([
-        new Promise((resolve) => {
-          var diagrams = Array.from(document.querySelectorAll('code.language-mmd, code.language-mermaid'))
-          if (!state.content.mermaid || !diagrams.length) {
-            resolve()
-          }
-          else {
-            var timeout = setInterval(() => {
-              var svg = Array.from(document.querySelectorAll('code.language-mmd svg, code.language-mermaid svg'))
-              if (diagrams.length === svg.length) {
-                clearInterval(timeout)
-                resolve()
-              }
-            }, 50)
-          }
-        }),
-        new Promise((resolve) => {
-          var images = Array.from(document.querySelectorAll('img'))
-          if (!images.length) {
-            resolve()
-          }
-          else {
-            var loaded = 0
-            images.forEach((img) => {
-              img.addEventListener('load', () => {
-                if (++loaded === images.length) {
-                  resolve()
-                }
-              }, {once: true})
-            })
-          }
-        }),
-      ]),
-      new Promise((resolve) => setTimeout(resolve, 500))
-    ])
-    .then(done)
-  }
-  function debounce (container, done) {
-    var listener = /html/i.test(container.nodeName) ? window : container
-    var timeout = null
-    listener.addEventListener('scroll', () => {
-      clearTimeout(timeout)
-      timeout = setTimeout(done, 100)
-    })
-  }
-  function listen (container, prefix) {
-    var key = prefix + location.origin + location.pathname
-    try {
-      container.scrollTop = parseInt(localStorage.getItem(key))
-      debounce(container, () => {
-        localStorage.setItem(key, container.scrollTop)
-      })
-    }
-    catch (err) {
-      chrome.storage.local.get(key, (res) => {
-        container.scrollTop = parseInt(res[key])
-      })
-      debounce(container, () => {
-        chrome.storage.local.set({[key]: container.scrollTop})
-      })
-    }
-  }
-  return {
-    body: () => {
-      var loaded
-      race(() => {
-        if (!loaded) {
-          loaded = true
-          if (state.content.scroll) {
-            listen($('html'), 'md-')
-          }
-          else if (location.hash && $(location.hash)) {
-            $('html').scrollTop = $(location.hash).offsetTop
-          }
-        }
-      })
-    },
-    toc: () => {
-      listen($('#_toc'), 'md-toc-')
-    }
-  }
-})()
-
-function anchors () {
-  Array.from($('#_html').childNodes)
-  .filter((node) => /h[1-6]/i.test(node.tagName))
-  .forEach((node) => {
-    var a = document.createElement('a')
-    a.className = 'anchor'
-    a.name = node.id
-    a.href = '#' + node.id
-    a.innerHTML = '<span class="octicon octicon-link"></span>'
-    node.prepend(a)
-  })
-}
-
-var toc = (
-  link = (header) => '<a href="#' + header.id + '">' + header.title + '</a>') =>
-  Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
-    .filter((node) => /h[1-6]/i.test(node.tagName))
-    .map((node) => ({
-      id: node.getAttribute('id'),
-      level: parseInt(node.tagName.replace('H', '')),
-      title: node.innerText.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    }))
-    .reduce((html, header) => {
-      html += '<div class="_ul">'.repeat(header.level)
-      html += link(header)
-      html += '</div>'.repeat(header.level)
-      return html
-    }, '')
-
-if (document.readyState === 'complete') {
-  mount()
-}
-else {
-  var timeout = setInterval(() => {
-    if (document.readyState === 'complete') {
-      clearInterval(timeout)
-      mount()
-    }
-  }, 0)
-}
-
-if (state.content.autoreload) {
-  ;(() => {
-    var initial = ''
-
-    var response = (body) => {
-      if (!initial) {
-        initial = body
-      }
-      else if (initial !== body) {
-        location.reload(true)
-      }
-    }
-
-    var xhr = new XMLHttpRequest()
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4) {
-        response(xhr.responseText)
-      }
-    }
-
-    var get = () => {
-      if (location.protocol === 'file:') {
-        chrome.runtime.sendMessage({
-          message: 'autoreload',
-          location: location.href
-        }, (res) => {
-          if (res.err) {
-            console.error(res.err)
-            clearInterval(state.interval)
-          }
-          else {
-            response(res.body)
-          }
-        })
-      }
-      else {
-        xhr.open('GET', location.href + '?preventCache=' + Date.now(), true)
-        try {
-          xhr.send()
-        }
-        catch (err) {
-          console.error(err)
-          clearInterval(state.interval)
-        }
-      }
-    }
-
-    get()
-    state.interval = setInterval(get, state.ms)
-  })()
-}
+mount()

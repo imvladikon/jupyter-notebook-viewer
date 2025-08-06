@@ -23,8 +23,8 @@ module.exports = ({advanced}) => {
       await advanced.evaluate(() =>
         origins.state.header
       ),
-      true,
-      'origins.state.header should be true'
+      false,
+      'origins.state.header should be false'
     )
     t.strictEqual(
       await advanced.evaluate(() =>
@@ -42,7 +42,7 @@ module.exports = ({advanced}) => {
       ),
       {
         'file://': {
-          match: '\\.(?:markdown|mdown|mkdn|md|mkd|mdwn|mdtxt|mdtext|text)(?:#.*|\\?.*)?$',
+          match: '\\.ipynb(?:#.*|\\?.*)?$',
           csp: false,
           encoding: ''
         }
@@ -67,7 +67,7 @@ module.exports = ({advanced}) => {
       await advanced.evaluate(() =>
         document.querySelector('.m-list li:nth-of-type(1) .m-match input').value
       ),
-      '\\.(?:markdown|mdown|mkdn|md|mkd|mdwn|mdtxt|mdtext|text)(?:#.*|\\?.*)?$',
+      '\\.ipynb(?:#.*|\\?.*)?$',
       'the text input should contain the default path matching regexp'
     )
   })

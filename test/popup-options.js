@@ -21,7 +21,7 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/correct-content-type')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -100,7 +100,7 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/correct-content-type')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -136,7 +136,7 @@ module.exports = ({popup, advanced, content}) => {
       // reload popup
       await popup.bringToFront()
       await popup.reload()
-      await popup.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await popup.evaluate(() =>
@@ -171,7 +171,7 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/compiler-options-marked')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -190,7 +190,7 @@ module.exports = ({popup, advanced, content}) => {
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -205,7 +205,7 @@ module.exports = ({popup, advanced, content}) => {
       // reload popup
       await popup.bringToFront()
       await popup.reload()
-      await popup.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await popup.evaluate(() =>
@@ -247,7 +247,7 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/compiler-options-remark')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -279,7 +279,7 @@ module.exports = ({popup, advanced, content}) => {
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -308,14 +308,14 @@ module.exports = ({popup, advanced, content}) => {
       // redraw popup
       await popup.bringToFront()
       await popup.reload()
-      await popup.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // disable gfm - gfm switch
       await popup.click('.m-panel:nth-of-type(2) .m-switch[title~=GFM]')
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await content.evaluate(() =>
@@ -330,7 +330,7 @@ module.exports = ({popup, advanced, content}) => {
       // reload popup
       await popup.bringToFront()
       await popup.reload()
-      await popup.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.equal(
         await popup.evaluate(() =>
@@ -372,7 +372,7 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/content-options-toc')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -391,7 +391,7 @@ module.exports = ({popup, advanced, content}) => {
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.deepStrictEqual(
         await content.evaluate(() =>
@@ -422,17 +422,17 @@ module.exports = ({popup, advanced, content}) => {
       // go to page serving markdown as text/markdown
       await content.goto('http://localhost:3000/content-options-scroll')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // scroll down 200px
       await content.evaluate(() =>
         document.querySelector('html').scrollTop = 200
       )
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // reload page
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -451,7 +451,7 @@ module.exports = ({popup, advanced, content}) => {
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -465,11 +465,11 @@ module.exports = ({popup, advanced, content}) => {
       await content.evaluate(() =>
         document.querySelector('html').scrollTop = 200
       )
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // reload page
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -483,7 +483,7 @@ module.exports = ({popup, advanced, content}) => {
     it('scroll to anchor', async () => {
       // click on header link
       await content.click('h2 a')
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -499,7 +499,7 @@ module.exports = ({popup, advanced, content}) => {
       await content.evaluate(() =>
         document.querySelector('html').scrollTop += 200
       )
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -513,7 +513,7 @@ module.exports = ({popup, advanced, content}) => {
 
       // reload page
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       t.strictEqual(
         await content.evaluate(() =>
@@ -538,12 +538,12 @@ module.exports = ({popup, advanced, content}) => {
 
       await content.goto('about:blank')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // go to test page
       await content.goto('http://localhost:3000/popup-autoreload')
       await content.bringToFront()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // enable autoreload
       await popup.bringToFront()
@@ -552,7 +552,7 @@ module.exports = ({popup, advanced, content}) => {
       // content auto reloads, but there is no way to have both tabs active
       await content.bringToFront()
       await content.reload()
-      await content.waitForTimeout(300)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // TODO: wait for https://github.com/GoogleChrome/puppeteer/pull/2812
       // update autoreload interval
@@ -568,7 +568,7 @@ module.exports = ({popup, advanced, content}) => {
         'first request'
       )
       // the initial interval is 1000
-      await content.waitForTimeout(1300)
+      await new Promise(resolve => setTimeout(resolve, 1300))
 
       t.equal(
         await content.evaluate(() =>
@@ -578,7 +578,7 @@ module.exports = ({popup, advanced, content}) => {
         'second request - xhr body is UTF-8 - should not trigger reload'
       )
       // the initial interval is 1000
-      await content.waitForTimeout(1300)
+      await new Promise(resolve => setTimeout(resolve, 1300))
 
       t.equal(
         await content.evaluate(() =>
@@ -591,7 +591,7 @@ module.exports = ({popup, advanced, content}) => {
       // popup
       await popup.bringToFront()
       // the initial interval is 1000
-      await content.waitForTimeout(1300)
+      await new Promise(resolve => setTimeout(resolve, 1300))
       await content.bringToFront()
       t.equal(
         await content.evaluate(() =>

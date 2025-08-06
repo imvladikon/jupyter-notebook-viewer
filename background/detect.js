@@ -1,37 +1,41 @@
+// Clean detection implementation based on markdown-viewer patterns
+// Simplified detection logic with better error handling
+
 md.detect = ({storage: {state}, inject}) => {
-
+  
   var onwakeup = true
-
-  var code = `
-    JSON.stringify({
-      url: window.location.href,
-      header: document.contentType,
-      loaded: !!window.state,
-    })
-  `
-
+  
   var tab = (id, info, tab) => {
     if (info.status === 'loading') {
-      // try
-      chrome.tabs.executeScript(id, {code, runAt: 'document_start'}, (res) => {
+      
+      // Execute detection script
+      chrome.scripting.executeScript({
+        target: {tabId: id},
+        func: () => 
+          JSON.stringify({
+            url: window.location.href,
+            header: document.contentType,
+            loaded: !!window.state || !!window.args,
+          })
+      }, (res) => {
         if (chrome.runtime.lastError) {
-          // origin not allowed
+          // Origin not allowed or other error
           return
         }
-
+        
         try {
-          var win = JSON.parse(res)
+          var win = JSON.parse(res[0].result)
+          if (!win) return
         } catch (err) {
-          // JSON parse error
           return
         }
-
+        
         if (win.loaded) {
-          // anchor
-          return
+          // Already processed
+          return  
         }
-
-        if (header(win.header) || match(win.url)) {
+        
+        if (detect(win.header, win.url)) {
           if (onwakeup && chrome.webRequest) {
             onwakeup = false
             chrome.tabs.reload(id)
@@ -42,25 +46,30 @@ md.detect = ({storage: {state}, inject}) => {
       })
     }
   }
-
-  var header = (value) => {
-    return state.header && value && /text\/(?:x-)?markdown/i.test(value)
-  }
-
-  var match = (url) => {
+  
+  var detect = (content, url) => {
     var location = new URL(url)
-
-    var origin =
+    
+    // Check if URL ends with .ipynb
+    if (!location.pathname.endsWith('.ipynb')) {
+      return false
+    }
+    
+    // Find matching origin
+    var origin = 
       state.origins[location.origin] ||
       state.origins[location.protocol + '//' + location.hostname] ||
-      state.origins['*://' + location.host] ||
       state.origins['*://' + location.hostname] ||
+      state.origins['*://' + location.host] ||
       state.origins['*://*']
-
-    if (origin && origin.match && new RegExp(origin.match).test(location.href)) {
-      return origin
+    
+    // Default file:// support for .ipynb files
+    if (!origin && location.protocol === 'file:') {
+      origin = state.origins['file://'] || {match: state.match}
     }
+    
+    return origin && new RegExp(origin.match || state.match).test(url)
   }
-
-  return {tab, header, match}
+  
+  return {tab}
 }

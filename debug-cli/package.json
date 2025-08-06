@@ -1,0 +1,21 @@
+{
+  "name": "ipynb-debug-cli",
+  "version": "1.0.0",
+  "description": "Debug CLI tool for Jupyter Notebook Viewer extension",
+  "main": "index.js",
+  "bin": {
+    "ipynb-debug": "./index.js"
+  },
+  "scripts": {
+    "test": "node index.js assets/Llama3_1_\\(8B\\)_GRPO.ipynb"
+  },
+  "dependencies": {
+    "commander": "^9.4.1",
+    "marked": "^4.3.0",
+    "prismjs": "^1.29.0",
+    "katex": "^0.16.8"
+  },
+  "keywords": ["jupyter", "notebook", "ipynb", "debug", "cli"],
+  "author": "Debug Tool",
+  "license": "MIT"
+}

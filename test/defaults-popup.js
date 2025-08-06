@@ -20,15 +20,15 @@ module.exports = ({popup}) => {
       await popup.evaluate(() =>
         document.querySelector('.m-button:first-child').innerText.toLowerCase()
       ),
-      'markdown',
-      'button text should equal markdown'
+      'ipynb',
+      'button text should equal ipynb'
     )
   })
 
   it('tabs', async () => {
     t.equal(
       await popup.evaluate(() =>
-        state.tab
+        state.tab || state.tabs[0]
       ),
       'theme',
       'state.tab should equal theme'
@@ -55,7 +55,7 @@ module.exports = ({popup}) => {
   it('tab - theme', async () => {
     t.equal(
       await popup.evaluate(() =>
-        state.theme
+        typeof state.theme === 'object' ? state.theme.name : state.theme
       ),
       'github',
       'state.theme should equal github'

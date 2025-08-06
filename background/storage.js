@@ -1,59 +1,80 @@
-// chrome.storage.sync.clear()
-// chrome.permissions.getAll((p) => chrome.permissions.remove({origins: p.origins}))
+// Clean storage implementation based on markdown-viewer patterns
+// Simplified async pattern and cleaner state management
 
 md.storage = ({compilers}) => {
-
   var defaults = md.storage.defaults(compilers)
-
   var state = {}
-
-  function set(options) {
-    chrome.storage.sync.set(options)
-    Object.assign(state, options)
+  
+  async function set(options) {
+    try {
+      await chrome.storage.sync.set(options)
+      Object.assign(state, options)
+    } catch (error) {
+      console.error('[Storage] Set failed:', error)
+      // Fallback to local storage
+      try {
+        await chrome.storage.local.set(options)
+        Object.assign(state, options)
+      } catch (localError) {
+        console.error('[Storage] Local storage failed:', localError)
+      }
+    }
   }
-
+  
   chrome.storage.sync.get((res) => {
+    // Clean up old permissions
     md.storage.bug(res)
-
+    
+    // Use defaults if empty, otherwise stored data
     Object.assign(state, JSON.parse(JSON.stringify(
       !Object.keys(res).length ? defaults : res)))
-
-    // mutate
-    md.storage.migrations(state)
-
-    // in case of new providers from the compilers branch
+    
+    // Add missing compiler defaults
     Object.keys(compilers).forEach((compiler) => {
       if (!state[compiler]) {
         state[compiler] = compilers[compiler].defaults
       }
     })
-
+    
+    // Run migrations
+    if (md.migrations) {
+      state = md.migrations.run(state)
+    }
+    
+    // Ensure valid theme (fix "*" issue)
+    if (!state.theme || typeof state.theme !== 'string' || state.theme === '*') {
+      state.theme = 'github'
+    }
+    
+    // Ensure raw is boolean
+    if (typeof state.raw !== 'boolean') {
+      state.raw = false
+    }
+    
     set(state)
   })
-
+  
   return {defaults, state, set}
 }
 
 md.storage.defaults = (compilers) => {
-  var match = 'ipynb'
-  //TODO:regexp url
-
+  var match = '\\.ipynb(?:#.*|\\?.*)?$'
+  
   var defaults = {
     theme: 'github',
-    compiler: 'marked',
+    compiler: 'marked', 
     raw: false,
-    header: true,
     match,
     themes: {
-      wide: true,
+      // wide option removed - using toggleable TOC instead
     },
     content: {
       emoji: false,
-      scroll: true,
-      toc: true,
       mathjax: true,
-      autoreload: false,
       mermaid: false,
+      syntax: true,
+      toc: true,
+      autoreload: false,
     },
     origins: {
       'file://': {
@@ -61,18 +82,21 @@ md.storage.defaults = (compilers) => {
         csp: false,
         encoding: '',
       }
-    },
+    }
   }
-
+  
+  // Add compiler defaults
   Object.keys(compilers).forEach((compiler) => {
-    defaults[compiler] = compilers[compiler].defaults
+    if (compilers[compiler].defaults) {
+      defaults[compiler] = compilers[compiler].defaults
+    }
   })
-
+  
   return defaults
 }
 
 md.storage.bug = (res) => {
-  // reload extension bug
+  // Clean up old permissions
   chrome.permissions.getAll((permissions) => {
     var origins = Object.keys(res.origins || {})
     chrome.permissions.remove({
@@ -80,39 +104,4 @@ md.storage.bug = (res) => {
         .filter((origin) => origins.indexOf(origin.slice(0, -2)) === -1)
     })
   })
-}
-
-md.storage.migrations = (state) => {
-  // v3.6 -> v3.7
-  if (typeof state.origins['file://'] === 'object') {
-    state.origins['file://'].csp = false
-  }
-  if (typeof state.theme === 'string') {
-    state.theme = {
-      name: state.theme,
-      url: chrome.runtime.getURL(`/themes/${state.theme}.css`)
-    }
-  }
-  if (state.themes === undefined) {
-    state.themes = []
-  }
-  if (state.marked.tables !== undefined) {
-    delete state.marked.tables
-  }
-  // v3.9 -> v4.0
-  if (state.remark.commonmark !== undefined) {
-    delete state.remark.commonmark
-  }
-  if (state.remark.pedantic !== undefined) {
-    delete state.remark.pedantic
-  }
-  if (state.content.mermaid === undefined) {
-    state.content.mermaid = false
-  }
-  if (state.themes === undefined || state.themes instanceof Array) {
-    state.themes = {wide: false}
-  }
-  if (typeof state.theme === 'object') {
-    state.theme = state.theme.name
-  }
 }
